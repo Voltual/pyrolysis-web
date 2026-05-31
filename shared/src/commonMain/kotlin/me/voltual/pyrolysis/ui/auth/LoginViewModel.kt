@@ -12,6 +12,7 @@ import androidx.lifecycle.*
 import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.AuthRepository // 使用新的 Repository
 import me.voltual.pyrolysis.KtorClient
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -208,7 +209,9 @@ class LoginViewModel(
     }
 
     fun loadVerificationCode() {
-        _verificationCodeUrl.value = "http://apk.xiaoqu.online/api/get_image_verification_code?appid=1&type=2&t=${System.currentTimeMillis()}"
+        // 使用 Clock.System.now().toEpochMilliseconds() 获取跨平台的毫秒时间戳
+        val timestamp = Clock.System.now().toEpochMilliseconds()
+        _verificationCodeUrl.value = "http://apk.xiaoqu.online/api/get_image_verification_code?appid=1&type=2&t=$timestamp"
     }
 
     private suspend fun saveCredentialsAndNotifySuccess(usertoken: String, userId: Long) {
