@@ -9,7 +9,7 @@ import me.voltual.pyrolysis.AppStore
  * Navigation 3 的类型安全目的地契约。
  * 移除了所有冗余的 route 字符串定义，完全依赖 Kotlinx Serialization 进行类型匹配。
  */
-@Serializable
+
 sealed interface AppDestination : NavKey
 
 // --- 核心导航 ---
