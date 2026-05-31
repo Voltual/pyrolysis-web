@@ -36,7 +36,7 @@ import me.voltual.pyrolysis.ui.*
 import me.voltual.pyrolysis.core.ui.theme.AppShapes
 import me.voltual.pyrolysis.core.ui.theme.BBQCard
 import me.voltual.pyrolysis.core.utils.formatTimestamp
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MyCommentsScreen(

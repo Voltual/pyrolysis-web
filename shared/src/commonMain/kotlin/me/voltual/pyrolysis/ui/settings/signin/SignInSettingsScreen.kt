@@ -18,7 +18,7 @@ import me.voltual.pyrolysis.core.ui.theme.BBQButton
 import me.voltual.pyrolysis.core.ui.theme.SwitchWithText
 import me.voltual.pyrolysis.core.ui.theme.BBQSnackbarHost
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SignInSettingsScreen(

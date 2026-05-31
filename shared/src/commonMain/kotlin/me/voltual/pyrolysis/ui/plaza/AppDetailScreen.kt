@@ -51,7 +51,7 @@ import me.voltual.pyrolysis.ui.community.compose.CommentItem
 import me.voltual.pyrolysis.core.ui.components.LinkifyText
 import me.voltual.pyrolysis.core.ui.theme.*
 import me.voltual.pyrolysis.core.utils.formatTimestamp
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Suppress("DEPRECATION")
 @Composable

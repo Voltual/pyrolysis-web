@@ -20,7 +20,7 @@ import me.voltual.pyrolysis.AuthRepository
 import me.voltual.pyrolysis.ui.*
 import me.voltual.pyrolysis.core.ui.theme.BBQTheme
 import me.voltual.pyrolysis.core.ui.theme.ThemeManager
-import org.koin.androidx.compose.koinViewModel 
+import org.koin.compose.viewmodel.koinViewModel 
 import org.koin.compose.koinInject            
 
 @Composable

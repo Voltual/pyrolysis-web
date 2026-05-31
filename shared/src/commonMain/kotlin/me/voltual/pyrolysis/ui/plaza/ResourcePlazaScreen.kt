@@ -40,7 +40,7 @@ import me.voltual.pyrolysis.core.ui.theme.AppShapes
 import me.voltual.pyrolysis.core.ui.theme.AppStoreDropdownMenu
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import me.voltual.pyrolysis.core.ui.theme.AppGrid
 import me.voltual.pyrolysis.core.ui.theme.AppGridItem
 import androidx.lifecycle.compose.collectAsStateWithLifecycle

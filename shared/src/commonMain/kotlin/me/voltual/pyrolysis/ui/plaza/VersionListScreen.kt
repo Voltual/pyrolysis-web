@@ -18,7 +18,7 @@ import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.data.unified.UnifiedAppItem
 import me.voltual.pyrolysis.ui.*
 import me.voltual.pyrolysis.core.ui.theme.AppList
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun VersionListScreen(

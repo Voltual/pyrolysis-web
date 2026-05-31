@@ -38,7 +38,7 @@ import me.voltual.pyrolysis.core.ui.components.StarRating
 import me.voltual.pyrolysis.core.ui.theme.AppShapes
 import me.voltual.pyrolysis.core.ui.theme.BBQOutlinedButton
 import me.voltual.pyrolysis.core.utils.formatTimestamp
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MyReviewsScreen(

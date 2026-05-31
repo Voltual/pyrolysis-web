@@ -69,7 +69,7 @@ import me.voltual.pyrolysis.ui.community.PostDetailViewModel
 import me.voltual.pyrolysis.core.ui.components.LinkifyText
 import me.voltual.pyrolysis.core.ui.theme.*
 import me.voltual.pyrolysis.core.utils.cleanUrl
-import org.koin.androidx.compose.koinViewModel // Koin 支持
+import org.koin.compose.viewmodel.koinViewModel // Koin 支持
 import org.koin.compose.koinInject            // Koin 支持
 
 @Suppress("DEPRECATION")
