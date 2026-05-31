@@ -26,8 +26,8 @@ class Navigator(
     state.resetToStart()
   }
 
-  // 完美对接强类型路由
-  fun navigate(route: AppDestination) {
+  // 完全还原官方对通用 NavKey 的接收和流转
+  fun navigate(route: NavKey) {
     forceCleanup()
 
     if (route in state.backStacks.keys) {
@@ -35,15 +35,6 @@ class Navigator(
     } else {
       state.backStacks[state.topLevelRoute]?.add(route)
     }
-  }
-
-  // 对外顶层架构兼容
-  fun navigate(route: NavKey) {
-     if (route is AppDestination) {
-         navigate(route)
-     } else {
-         error("Route $route must implement AppDestination")
-     }
   }
 
   fun goBack() {
