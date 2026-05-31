@@ -15,6 +15,9 @@ import okio.Sink
 import okio.Source
 import kotlinx.browser.localStorage
 
+/**
+ * 专为浏览器 localStorage 设计的极简 Okio FileSystem。
+ */
 class LocalStorageFileSystem : FileSystem() {
     override fun canonicalize(path: Path): Path = path
 
@@ -110,11 +113,9 @@ actual fun createPreferenceDataStore(
     fileName: String,
     context: Any?
 ): DataStore<Preferences> {
+    // 修复：直接使用 KMP 官方推荐的 createWithPath(fileSystem, produceFile) 签名
     return PreferenceDataStoreFactory.createWithPath(
-        produceFile = { fileName.toPath() },
-        storage = OkioStorage(
-            fileSystem = LocalStorageFileSystem(),
-            producePath = { fileName.toPath() }
-        )
+        fileSystem = LocalStorageFileSystem(),
+        produceFile = { fileName.toPath() }
     )
 }

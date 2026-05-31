@@ -2,6 +2,7 @@ package me.voltual.pyrolysis.di
 
 import androidx.room3.Room
 import androidx.sqlite.driver.web.WebWorkerSQLiteDriver
+import org.w3c.dom.Worker
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import me.voltual.pyrolysis.core.database.AppDatabase
@@ -17,7 +18,8 @@ actual val platformModule: Module = module {
         Room.databaseBuilder<AppDatabase>(
             name = "pyrolysis_database"
         )
-        .setDriver(WebWorkerSQLiteDriver())
+        // 修复：Web 端必须使用 WebWorkerSQLiteDriver 并传入对应的 Worker 实例
+        .setDriver(WebWorkerSQLiteDriver(Worker("sqlite.worker.js")))
         .build()
     }
 
