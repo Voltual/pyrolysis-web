@@ -548,7 +548,7 @@ private fun FunctionCardSection(
 
 @Composable
 private fun FunctionItem(
-    icon: Any,
+    icon: ImageVector,
     label: String,
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -566,8 +566,6 @@ private fun FunctionItem(
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (icon) {
-            is ImageVector -> {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
@@ -576,8 +574,6 @@ private fun FunctionItem(
                         .padding(end = iconMarginEnd),
                     tint = MaterialTheme.colorScheme.primary
                 )
-            }
-            else -> throw IllegalArgumentException("Unsupported icon type: ${icon::class.java}")
         }
 
         Text(
