@@ -36,20 +36,26 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
     
-    // 修复：使用最基础、最通用的 rememberSaveable(saver) { ... } 签名
-    // 移除显式的 inputs 传递，完全依赖 remember(startRoute) 闭包捕获，规避多平台 KMP 的编译盲区
+    // 创建多态序列化器
+    val polymorphicSerializer = remember(startRoute) { AppDestination.serializer() }
+    
+    // 手工构建跨平台 Saver
+    val stateSaver = remember(polymorphicSerializer) {
+        Saver<MutableState<AppDestination>, String>(
+            save = { state -> 
+                NavigationJson.encodeToString(polymorphicSerializer, state.value) 
+            },
+            restore = { jsonString -> 
+                mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
+            }
+        )
+    }
+
+    // 修复：显式提供 inputs 参数数组作为第一个参数，完全对齐最基础的 rememberSaveable(vararg inputs, saver) 签名
+    // 这样编译器就绝不可能再把它错认成 SavedStateConfiguration 签名
     val topLevelRoute = rememberSaveable(
-        saver = remember(startRoute) {
-            val polymorphicSerializer = AppDestination.serializer()
-            Saver<MutableState<AppDestination>, String>(
-                save = { state -> 
-                    NavigationJson.encodeToString(polymorphicSerializer, state.value) 
-                },
-                restore = { jsonString -> 
-                    mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
-                }
-            )
-        }
+        startRoute, topLevelRoutes, // 显式作为 vararg inputs 传入
+        saver = stateSaver
     ) {
         mutableStateOf(startRoute)
     }
@@ -117,7 +123,6 @@ fun NavigationState.toEntries(
 ): SnapshotStateList<NavEntry<AppDestination>> {
 
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
-        // 将强转拆解开，完全抹平多平台编译器的泛型检测
         val baseDecorator = rememberSaveableStateHolderNavEntryDecorator<AppDestination>()
         @Suppress("UNCHECKED_CAST")
         val decorators = listOf(baseDecorator) as List<androidx.navigation3.runtime.NavEntryDecorator<NavKey>>
