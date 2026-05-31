@@ -24,6 +24,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.voltual.pyrolysis.util.getAndroidDeviceInfo
 import me.voltual.pyrolysis.AuthRepository
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.core.database.PostDraftRepository
@@ -211,20 +212,21 @@ class PostCreateViewModel(
             }
 
             val videoPart = if (bvNumber.isNotBlank()) "【视频：$bvNumber】" else ""
-            val finalContent = if (mode == "refund") {
-                """
-                ${_uiState.value.content}
+            
+            val androidDeviceInfo = getAndroidDeviceInfo()
 
-                问题类型:$selectedRefundReason
-                系统定制商：${android.os.Build.BRAND.uppercase()}
-                设备型号：${android.os.Build.MODEL}
-                退还金额:$refundPayMoney
-                资源id:$refundAppId
-                资源版本:$refundVersionId 機型：$tempDeviceName｜$videoPart
-                """.trimIndent()
-            } else {
-                "${_uiState.value.content} 機型：$tempDeviceName｜$videoPart"
-            }
+val finalContent = if (mode == "refund") {
+    """
+    ${_uiState.value.content}
+
+    问题类型:$selectedRefundReason$androidDeviceInfo
+    退还金额:$refundPayMoney
+    资源id:$refundAppId
+    资源版本:$refundVersionId 機型：$tempDeviceName｜$videoPart
+    """.trimIndent()
+} else {
+    "${_uiState.value.content} 機型：$tempDeviceName｜$videoPart"
+}
 
             val finalSubsectionId = if (mode == "refund") 21 else subsectionId
 
