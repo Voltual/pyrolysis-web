@@ -14,8 +14,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// shared/build.gradle.kts
-
 buildConfig {
     useKotlinOutput()
     packageName("me.voltual.pyrolysis")
@@ -55,62 +53,58 @@ kotlin {
             dependencies {
                 implementation(libs.compose.runtime)
                 implementation(libs.compose.foundation)              
-//                    implementation(libs.compose.navigation3)                                        implementation(libs.jetbrains.navigation3.ui)
-                      implementation(libs.jetbrains.lifecycle.viewmodelNavigation3)
-                        implementation(libs.jetbrains.material3.adaptiveNavigation3)
+                implementation(libs.jetbrains.lifecycle.viewmodelNavigation3)
+                implementation(libs.jetbrains.material3.adaptiveNavigation3)
                 implementation(libs.compose.material3)
                 implementation(libs.ktor.client.core)
-                    implementation(libs.markdown)
+                implementation(libs.markdown)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.json)
                 implementation(libs.room3.runtime)
                 implementation(libs.sqlite)
                 implementation(libs.ktor.client.logging)
-                                implementation(libs.kotlinx.io)
-                    implementation(project(":ApkParser"))
+                implementation(libs.kotlinx.io)
+                implementation(project(":ApkParser"))
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.koin.compose.viewmodel)
                 implementation(libs.kotlinx.coroutines.core)
-                            implementation(libs.components.resources)
+                implementation(libs.components.resources)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.koin.core)
-
                 implementation(libs.koin.annotations)
-                            implementation(libs.material.icons.core)
-                            implementation(libs.material.icons.extended)
-                    // FileKit
-    implementation(libs.filekit.core)
-    implementation(libs.filekit.dialogs)
-    implementation(libs.filekit.dialogs.compose)
-        implementation(libs.coil.compose)
-    implementation(libs.coil.network.ktor)
-           // DataStore library
-  implementation("androidx.datastore:datastore-core:1.3.0-alpha09")
-  // The Preferences DataStore library
-  implementation("androidx.datastore:datastore-preferences-core:1.3.0-alpha09")
+                implementation(libs.material.icons.core)
+                implementation(libs.material.icons.extended)
+                
+                // FileKit
+                implementation(libs.filekit.core)
+                implementation(libs.filekit.dialogs)
+                implementation(libs.filekit.dialogs.compose)
+                implementation(libs.coil.compose)
+                implementation(libs.coil.network.ktor)
+                
+                // DataStore library (这里的datastore一定要+"-core"并且得是1.3.0-alpha01之后才支持wasm+js)
+                implementation("androidx.datastore:datastore-core:1.3.0-alpha09")
+                // The Preferences DataStore library
+                implementation("androidx.datastore:datastore-preferences-core:1.3.0-alpha09")
             }
         }
-//这里的datastore一定要+"-core"并且得是1.3.0-alpha01之后才支持wasm+js
+
         val androidMain by getting {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.ijkplayer)
-                                implementation(libs.koin.android.compose)
-                                implementation(libs.sqlite.bundled)
-//                                    implementation(libs.compose.navigation3.ui)
+                implementation(libs.koin.android.compose)
+                implementation(libs.sqlite.bundled)
                 implementation(project(":DanmakuFlameMaster"))
-                                    implementation(libs.compose.adaptive)
-//    implementation(libs.compose.adaptive.layout)
-//    implementation(libs.compose.adaptive.navigation)
-//                        implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-                                                implementation(libs.androidx.lifecycle.viewmodel.compose)
+                implementation(libs.compose.adaptive)
+                implementation(libs.androidx.lifecycle.viewmodel.compose)
             }
         }
 
         wasmJsMain.dependencies {
             implementation(libs.navigation3.browser) 
-             implementation(libs.sqlite.web)
-              implementation(libs.kotlinx.io)             
+            implementation(libs.sqlite.web)
+            implementation(libs.kotlinx.io)             
         }
     }
 }
@@ -126,9 +120,8 @@ room3 {
 }
 
 dependencies {
-    // 为所有 KMP 目标配置 Room 编译器
-    add("kspCommonMainMetadata", libs.room3.compiler)
+    // 💡 关键修改：彻底删除了引发错误的 kspCommonMainMetadata 这一行
+    // 仅为具体的目标平台单独配置 Room KSP 编译器
     add("kspAndroid", libs.room3.compiler)
-    // 别忘了给 wasmJs 目标也加上 KSP 编译器
     add("kspWasmJs", libs.room3.compiler)
 }
