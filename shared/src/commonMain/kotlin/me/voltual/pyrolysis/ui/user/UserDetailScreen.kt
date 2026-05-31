@@ -614,9 +614,9 @@ private fun abbreviateNumber(count: String): String {
     return try {
         val number = count.toLong()
         when {
-            number >= 1_000_000 -> "%.1fM".format(number / 1_000_000.0)
-            number >= 10_000 -> "%.1fW".format(number / 10_000.0)
-            number >= 1_000 -> "%.1fK".format(number / 1_000.0)
+            number >= 1_000_000 -> "${((number / 1_000_000.0) * 10).toLong() / 10.0}M"
+            number >= 10_000 -> "${((number / 10_000.0) * 10).toLong() / 10.0}W"
+            number >= 1_000 -> "${((number / 1_000.0) * 10).toLong() / 10.0}K"
             else -> count
         }
     } catch (e: NumberFormatException) {

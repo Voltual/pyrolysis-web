@@ -374,9 +374,12 @@ private fun DrawerHeaderPreview(modifier: Modifier = Modifier, backgroundUri: St
 }
 
 fun Color.toHex(): String {
-    return String.format("%06X", this.toArgb() and 0xFFFFFF)
+    val rgb = this.toArgb() and 0xFFFFFF
+    // 转换为 16 进制字符串，并强制大写
+    val hex = rgb.toString(16).uppercase()
+    // 确保是 6 位数，不足的前面补 '0'
+    return hex.padStart(6, '0')
 }
-
 // 替代 android.graphics.Color.parseColor("#$newHex") 的纯 Kotlin 方案
 fun String.toComposeColor(): Color {
     // 将 6 位 Hex 字符串转换为 Long，并补上最高位的 Alpha 通道（FF 表示完全不透明）
