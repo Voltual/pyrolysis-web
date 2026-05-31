@@ -380,7 +380,7 @@ fun Color.toHex(): String {
 // 替代 android.graphics.Color.parseColor("#$newHex") 的纯 Kotlin 方案
 fun String.toComposeColor(): Color {
     // 将 6 位 Hex 字符串转换为 Long，并补上最高位的 Alpha 通道（FF 表示完全不透明）
-    val colorLong = this.toLong(16) or 0xFF000000_L
+    val colorLong = this.toLong(16) or 0xFF000000L
     return Color(colorLong)
 }
 
