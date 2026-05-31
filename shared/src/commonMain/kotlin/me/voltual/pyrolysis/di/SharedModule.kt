@@ -21,7 +21,7 @@ import me.voltual.pyrolysis.ui.user.*
 import me.voltual.pyrolysis.core.ui.theme.ThemeColorDataStore
 import me.voltual.pyrolysis.feature.store.repository.XiaoQuRepository
 import me.voltual.pyrolysis.feature.store.repository.IAppStoreRepository
-import me.voltual.pyrolysis.AppStoreType
+import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.KtorClient
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
