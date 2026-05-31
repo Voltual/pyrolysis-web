@@ -1,11 +1,4 @@
-//Copyright (C) 2025 Voltual
-// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+// Copyright (C) 2025 Voltual
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.ui.focus.FocusManager
@@ -26,18 +19,18 @@ class Navigator(
     state.resetToStart()
   }
 
-  // 修复：将参数类型从 NavKey 改为 AppDestination 以匹配我们特化的 NavigationState
   fun navigate(route: AppDestination) {
     forceCleanup()
 
     if (route in state.backStacks.keys) {
       state.topLevelRoute = route
     } else {
-      state.backStacks[state.state.topLevelRoute]?.add(route)
+      // 修复：去掉了错误的 .state. 修正为直接调用 state.topLevelRoute
+      state.backStacks[state.topLevelRoute]?.add(route)
     }
   }
 
-  // 兼容性重载：如果有些地方仍在使用顶层的 NavKey（比如第三方框架），进行安全分发
+  // 兼容性重载：如果有些地方仍在使用顶层的 NavKey，进行安全分发
   fun navigate(route: NavKey) {
      if (route is AppDestination) {
          navigate(route)

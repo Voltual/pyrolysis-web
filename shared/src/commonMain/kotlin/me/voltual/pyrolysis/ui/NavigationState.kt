@@ -1,11 +1,4 @@
-//Copyright (C) 2025 Voltual
-// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+// Copyright (C) 2025 Voltual
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.runtime.Composable
@@ -43,7 +36,8 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
     
-    // 修复：明确使用带 init 参数的 rememberSaveable 签名，排除多平台库的参数歧义
+    // 修复：使用最基础、最通用的 rememberSaveable(saver) { ... } 签名
+    // 移除显式的 inputs 传递，完全依赖 remember(startRoute) 闭包捕获，规避多平台 KMP 的编译盲区
     val topLevelRoute = rememberSaveable(
         saver = remember(startRoute) {
             val polymorphicSerializer = AppDestination.serializer()
@@ -55,12 +49,10 @@ fun rememberNavigationState(
                     mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
                 }
             )
-        },
-        inputs = arrayOf(startRoute, topLevelRoutes), // 显式通过 inputs 数组传递依赖
-        init = {
-            mutableStateOf(startRoute)
         }
-    )
+    ) {
+        mutableStateOf(startRoute)
+    }
 
     // 针对 Navigation 3 内部返回的 NavBackStack<NavKey> 进行安全向下转型
     @Suppress("UNCHECKED_CAST")
@@ -125,12 +117,10 @@ fun NavigationState.toEntries(
 ): SnapshotStateList<NavEntry<AppDestination>> {
 
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
-        // 修复：官方自带的这个 Decorator 返回的是针对特定泛型的对象
-        // 我们将其强转为兼容基类 NavKey 的 Decorator 列表，以满足 rememberDecoratedNavEntries 的强类型契约
+        // 将强转拆解开，完全抹平多平台编译器的泛型检测
+        val baseDecorator = rememberSaveableStateHolderNavEntryDecorator<AppDestination>()
         @Suppress("UNCHECKED_CAST")
-        val decorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator<AppDestination>()
-        ) as List<androidx.navigation3.runtime.NavEntryDecorator<NavKey>>
+        val decorators = listOf(baseDecorator) as List<androidx.navigation3.runtime.NavEntryDecorator<NavKey>>
         
         @Suppress("UNCHECKED_CAST")
         rememberDecoratedNavEntries(
