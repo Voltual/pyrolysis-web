@@ -35,4 +35,12 @@ KSP不兼容，请去 gradle.properties 加上 android.builtInKotlin=false 并�
 然后你就会陷入死循环
 
 (✘_✘)毁灭吧世界
-这是今天我发的帖子。不过真正的解决方案是提升ksp版本🙄，所以后来我成功升级到agp9了。但是光看报错日志确实一头雾水
+这是我发的帖子。不过真正的解决方案是提升ksp版本🙄，所以后来我成功升级到agp9了。但是光看报错日志确实一头雾水
+
+一些androidx库，实际JetBrains都会在后续提供跨平台方案比如
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
+material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
+jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "multiplatform-nav3-ui" }
+
+jetbrains-material3-adaptiveNavigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "compose-multiplatform-adaptive" }
+jetbrains-lifecycle-viewmodelNavigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "compose-multiplatform-lifecycle" }
