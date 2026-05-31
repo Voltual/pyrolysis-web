@@ -20,6 +20,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -35,7 +36,6 @@ private val NavigationJson = Json {
 
 /**
  * 创建一个支持跨平台（Android / iOS / Desktop）的状态持久化导航状态。
- * 在 Android 上支持进程死掉重建，在其他平台支持配置变更（如屏幕旋转、窗口缩放）。
  */
 @Composable
 fun rememberNavigationState(
@@ -43,7 +43,7 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
     
-    // 使用基于 kotlinx.serialization 的自定义 Saver 替代 Android 特有的 NavKeySerializer
+    // 修复：rememberSaveable 的第一个参数是 inputs，我们将 startRoute 和 topLevelRoutes 传入
     val topLevelRoute = rememberSaveable(
         startRoute, topLevelRoutes,
         saver = remember(startRoute) {
@@ -61,7 +61,11 @@ fun rememberNavigationState(
         mutableStateOf(startRoute)
     }
 
-    val backStacks = topLevelRoutes.associateWith { key -> rememberNavBackStack(key) }
+    // 修复：因为官方 rememberNavBackStack 返回的是 NavBackStack<NavKey>，我们在这里显式转换为我们需要的具体泛型
+    @Suppress("UNCHECKED_CAST")
+    val backStacks = topLevelRoutes.associateWith { key -> 
+        rememberNavBackStack(key) as NavBackStack<AppDestination>
+    }
 
     return remember(startRoute, topLevelRoutes) {
         NavigationState(
@@ -123,11 +127,12 @@ fun NavigationState.toEntries(
         val decorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator<AppDestination>(),
         )
+        @Suppress("UNCHECKED_CAST")
         rememberDecoratedNavEntries(
-            backStack = stack,
+            backStack = stack as NavBackStack<NavKey>, // 适配官方的装饰器泛型契约
             entryDecorators = decorators,
-            entryProvider = entryProvider
-        )
+            entryProvider = entryProvider as (NavKey) -> NavEntry<NavKey>
+        ) as List<NavEntry<AppDestination>>
     }
 
     return remember(topLevelRoute, startRoute, decoratedEntries) {
