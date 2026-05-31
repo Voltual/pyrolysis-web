@@ -6,7 +6,8 @@
 //
 // 你应该已经收到了一份 GNU 通用公共许可证的副本
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
-// 使用了 2026 Android Open Source Project 官方架构设计
+// 参考了https://github.com/terrakok/nav3-recipes/的实现
+define routes and register them with a `SavedStateConfiguration`, as shown below:
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.runtime.Composable
@@ -28,18 +29,67 @@ import androidx.savedstate.compose.serialization.serializers.MutableStateSeriali
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.subclassesOfSealed
 
 /**
- * 1. 对应官方的 config 定义
- * 通过 androidx.savedstate 的多平台开放序列化配置，让 Web/iOS 平台在编译期就能感知多态
+ * 1. 显式多态映射表
+ * 彻底废弃不稳定的 subclassesOfSealed，改为最稳固的明细注册。
+ * 这能百分之百保证 kotlinx.serialization 在 Web 端 (Wasm/JS) 顺藤摸瓜找到对应的序列化器。
  */
 internal val config = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
-            // 比原版挨个注册子路由更高级：由于你的路由全由 sealed interface 统一管理
-            // 这一行命令可以直接动态抓取 AppDestination 旗下的所有类，简洁且不易遗漏
-            subclassesOfSealed<AppDestination>()
+            // 核心导航
+            subclass(Home::class, Home.serializer())
+            subclass(Login::class, Login.serializer())
+            subclass(About::class, About.serializer())
+            subclass(LogViewer::class, LogViewer.serializer())
+            subclass(ThemeCustomize::class, ThemeCustomize.serializer())
+            subclass(StoreManager::class, StoreManager.serializer())
+            subclass(UpdateSettings::class, UpdateSettings.serializer())
+
+            // 社区与帖子
+            subclass(Community::class, Community.serializer())
+            subclass(MyLikes::class, MyLikes.serializer())
+            subclass(HotPosts::class, HotPosts.serializer())
+            subclass(FollowingPosts::class, FollowingPosts.serializer())
+            subclass(BrowseHistory::class, BrowseHistory.serializer())
+            subclass(PostDetail::class, PostDetail.serializer())
+            subclass(CreatePost::class, CreatePost.serializer())
+            subclass(CreateRefundPost::class, CreateRefundPost.serializer())
+            subclass(ImagePreview::class, ImagePreview.serializer())
+
+            // 用户相关
+            subclass(UserDetail::class, UserDetail.serializer())
+            subclass(MyPosts::class, MyPosts.serializer())
+            subclass(Search::class, Search.serializer())
+            subclass(MyComments::class, MyComments.serializer())
+            subclass(MyReviews::class, MyReviews.serializer())
+            subclass(FollowList::class, FollowList.serializer())
+            subclass(FanList::class, FanList.serializer())
+            subclass(AccountProfile::class, AccountProfile.serializer())
+            subclass(SignInSettings::class, SignInSettings.serializer())
+
+            // 资源广场与应用
+            subclass(ResourcePlaza::class, ResourcePlaza.serializer())
+            subclass(Explore::class, Explore.serializer())
+            subclass(SortFilterSheet::class, SortFilterSheet.serializer())
+            subclass(AppDetail::class, AppDetail.serializer())
+            subclass(AppPage::class, AppPage.serializer())
+            subclass(SearchPage::class, SearchPage.serializer())
+            subclass(PrefsReposPage::class, PrefsReposPage.serializer())
+            subclass(CreateAppRelease::class, CreateAppRelease.serializer())
+            subclass(UpdateAppRelease::class, UpdateAppRelease.serializer())
+
+            // 消息、账单、支付
+            subclass(MessageCenter::class, MessageCenter.serializer())
+            subclass(Billing::class, Billing.serializer())
+            subclass(PaymentCenterAdvanced::class, PaymentCenterAdvanced.serializer())
+            subclass(PaymentForApp::class, PaymentForApp.serializer())
+            subclass(PaymentForPost::class, PaymentForPost.serializer())
+
+            // 其他
+            subclass(RankingList::class, RankingList.serializer())
+            subclass(Player::class, Player.serializer())
         }
     }
 }
@@ -53,12 +103,20 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
 
-    // 严丝合缝对齐官方的 rememberSerializable 持久化方案
-    // 自动利用对齐多平台的 PolymorphicSerializer 处理多态子路由状态
-    val topLevelRoute = rememberSerializable(
+    // 修复：废弃位置不确定的 rememberSerializable，直接采用纯天然的 rememberSaveable。
+    // 将官方提供的 MutableStateSerializer 转换为 androidx.compose.runtime.saveable.Saver。
+    val stateSerializer = remember { MutableStateSerializer(PolymorphicSerializer(NavKey::class)) }
+    val kmpSaver = remember(stateSerializer) {
+        @Suppress("UNCHECKED_CAST")
+        androidx.savedstate.compose.serialization.serializers.Saver(
+            serializer = stateSerializer,
+            configuration = config
+        ) as androidx.compose.runtime.saveable.Saver<MutableState<NavKey>, Any>
+    }
+
+    val topLevelRoute = rememberSaveable(
         startRoute, topLevelRoutes,
-        configuration = config,
-        serializer = MutableStateSerializer(PolymorphicSerializer(NavKey::class))
+        saver = kmpSaver
     ) {
         mutableStateOf(startRoute as NavKey)
     }
@@ -85,7 +143,6 @@ class NavigationState(
     topLevelRoute: MutableState<NavKey>,
     val backStacks: Map<AppDestination, NavBackStack<NavKey>>
 ) {
-    // 隐藏内部的底层 NavKey，对外暴露我们绝对强类型的 AppDestination
     var topLevelRoute: AppDestination
         get() = _topLevelRoute as AppDestination
         set(value) { _topLevelRoute = value }
@@ -129,7 +186,6 @@ fun NavigationState.toEntries(
     entryProvider: (AppDestination) -> NavEntry<AppDestination>
 ): SnapshotStateList<NavEntry<AppDestination>> {
 
-    // 完美契合官方的 Decorator 架构逻辑
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
         val decorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
