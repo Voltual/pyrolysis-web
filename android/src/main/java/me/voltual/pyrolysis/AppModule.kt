@@ -157,7 +157,7 @@ single<Aead> {
     // 4. 业务仓库层 (Repositories)
     // =========================================================================
     
-    single { AuthRepository(/*get(AUTH_STORE_QUALIFIER)*/) }
+    single { AuthRepository(get(AUTH_STORE_QUALIFIER)) }
     single { PostDraftRepository(get()) }
     single { BrowseHistoryRepository(get()) }
     single { LogRepository(get()) }
