@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.androidx.room3)    
-    alias(libs.plugins.protobuf)
+//    alias(libs.plugins.protobuf)
     alias(libs.plugins.shizuku.refine)
 }
 
@@ -211,7 +211,7 @@ dependencies {
     implementation(libs.compose.html.converter)
 }
 
-protobuf {
+/*protobuf {
     protoc {
         artifact = libs.protoc.artifact.get().toString()
     }
@@ -223,7 +223,7 @@ protobuf {
             }
         }
     }
-}
+}*/
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {

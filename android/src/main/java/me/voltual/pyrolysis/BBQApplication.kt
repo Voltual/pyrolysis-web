@@ -13,6 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import me.voltual.pyrolysis.core.database.*
+import me.voltual.pyrolysis.*
 import me.voltual.pyrolysis.core.ui.theme.ThemeColorDataStore
 import me.voltual.pyrolysis.core.ui.theme.ThemeManager
 import me.voltual.pyrolysis.data.content.Preferences
@@ -82,7 +83,9 @@ class BBQApplication : Application(), KoinStartup {
             databaseModule,
             privacyModule,
             installerModule,
-            appModule,
+            commonModule,      // KMP 共享的通用模块
+        platformModule,    // KMP 共享的 Android 平台实现
+        androidAppModule   // Android 壳工程专属模块
         )
     }
 

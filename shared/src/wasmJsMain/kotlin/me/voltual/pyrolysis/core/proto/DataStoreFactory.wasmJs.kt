@@ -3,6 +3,8 @@ package me.voltual.pyrolysis.core.proto
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.okio.OkioStorage
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import okio.Buffer
 import okio.FileHandle
 import okio.FileMetadata
@@ -13,10 +15,6 @@ import okio.Sink
 import okio.Source
 import kotlinx.browser.localStorage
 
-/**
- * 专为浏览器 localStorage 设计的极简 Okio FileSystem。
- * 完美适配最新版本 Okio 的抽象基类要求，让 DataStore 能够无缝运行在 Web 浏览器中。
- */
 class LocalStorageFileSystem : FileSystem() {
     override fun canonicalize(path: Path): Path = path
 
@@ -40,12 +38,10 @@ class LocalStorageFileSystem : FileSystem() {
 
     override fun openReadOnly(file: Path): FileHandle = throw UnsupportedOperationException("WasmJS 环境暂不支持文件句柄操作")
     
-    // 适配最新 Okio 抽象方法签名
     override fun openReadWrite(file: Path, mustCreate: Boolean, mustExist: Boolean): FileHandle {
         throw UnsupportedOperationException("WasmJS 环境暂不支持文件句柄操作")
     }
 
-    // 适配最新 Okio 符号链接抽象方法签名
     override fun createSymlink(source: Path, target: Path) {
         throw UnsupportedOperationException("WasmJS 环境暂不支持符号链接")
     }
@@ -106,6 +102,19 @@ actual fun createDataStore(
             fileSystem = LocalStorageFileSystem(),
             serializer = serializer,
             producePath = { "user_credentials_secure".toPath() }
+        )
+    )
+}
+
+actual fun createPreferenceDataStore(
+    fileName: String,
+    context: Any?
+): DataStore<Preferences> {
+    return PreferenceDataStoreFactory.createWithPath(
+        produceFile = { fileName.toPath() },
+        storage = OkioStorage(
+            fileSystem = LocalStorageFileSystem(),
+            producePath = { fileName.toPath() }
         )
     )
 }
