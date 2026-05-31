@@ -1,7 +1,7 @@
 package me.voltual.pyrolysis.di
 
 import me.voltual.pyrolysis.AuthRepository
-import me.voltual.pyrolysis.core.database.AppDatabase
+import me.voltual.pyrolysis.core.database.*
 import me.voltual.pyrolysis.core.proto.CryptoManager
 import me.voltual.pyrolysis.core.proto.UserCredentialsSerializer
 import me.voltual.pyrolysis.data.*
