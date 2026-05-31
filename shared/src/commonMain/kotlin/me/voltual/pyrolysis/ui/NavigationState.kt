@@ -6,31 +6,45 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.SavedStateConfiguration
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.subclassesOfSealed
 
 /**
- * 跨平台通用的全局 Json 配置，用于多态导航状态的序列化
+ * 跨平台通用的全局 Json 配置
  */
 private val NavigationJson = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
 }
 
-// 内存级平台暂存器，防 Web 端组件重绘/配置变更导致状态丢失
-private var kmpNavigationCache: String? = null
+/**
+ * 官方标准：为你的密封接口创建 required 的跨平台开放多态序列化配置。
+ * 这样底层才能无缝支持 Web、iOS 和 Android 应对状态恢复。
+ */
+private val KmpNavConfig = SavedStateConfiguration {
+    serializersModule = SerializersModule {
+        polymorphic(NavKey::class) {
+            // 一行命令，自动注册 AppDestination 下面所有的 @Serializable 子路由对象/类
+            subclassesOfSealed<AppDestination>()
+        }
+    }
+}
 
 /**
- * 创建一个支持跨平台（包含 Web / Wasm）的状态持久化导航状态。
- * 彻底移除 rememberSaveable，改用纯 remember + LaunchedEffect，根除多平台签名冲突。
+ * 创建一个支持跨平台（包含 Android / Web / iOS）的标准导航状态。
  */
 @Composable
 fun rememberNavigationState(
@@ -38,31 +52,28 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
     
-    val polymorphicSerializer = remember(startRoute) { AppDestination.serializer() }
-
-    // 修复：彻底切换为普通的 remember，不走 rememberSaveable 任何多平台歧义重载
-    val topLevelRoute = remember(startRoute) {
-        val initialRoute = try {
-            kmpNavigationCache?.let { 
-                NavigationJson.decodeFromString(polymorphicSerializer, it) 
-            } ?: startRoute
-        } catch (e: Exception) {
-            startRoute
+    // 使用标准的基于 kotlinx.serialization 的多态 Saver，彻底避开老旧 Android 特有方法
+    val topLevelRoute = rememberSaveable(
+        saver = remember(startRoute) {
+            val polymorphicSerializer = AppDestination.serializer()
+            Saver<MutableState<AppDestination>, String>(
+                save = { state -> 
+                    NavigationJson.encodeToString(polymorphicSerializer, state.value) 
+                },
+                restore = { jsonString -> 
+                    mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
+                }
+            )
         }
-        mutableStateOf(initialRoute)
+    ) {
+        mutableStateOf(startRoute)
     }
 
-    // 当路由改变时，自动将状态落盘/缓存
-    androidx.compose.runtime.LaunchedEffect(topLevelRoute.value) {
-        try {
-            kmpNavigationCache = NavigationJson.encodeToString(polymorphicSerializer, topLevelRoute.value)
-        } catch (_: Exception) {}
-    }
-
-    // 针对 Navigation 3 内部返回的 NavBackStack<NavKey> 进行安全向下转型
+    // 核心修复：传入官方在多平台下强要求的 KmpNavConfig 配置对象！
+    // 并且显式将返回的 NavBackStack<NavKey> 转型为我们收窄的强类型 AppDestination
     @Suppress("UNCHECKED_CAST")
     val backStacks = topLevelRoutes.associateWith { key -> 
-        rememberNavBackStack(key) as NavBackStack<AppDestination>
+        rememberNavBackStack(KmpNavConfig, key) as NavBackStack<AppDestination>
     }
 
     return remember(startRoute, topLevelRoutes) {
@@ -140,6 +151,6 @@ fun NavigationState.toEntries(
 
         routesInUse
             .flatMap { decoratedEntries[it] ?: emptyList() }
-            .toMutableStateList() // 修复：补全了漏掉的调用小括号 ()
+            .toMutableStateList()
     }
 }
