@@ -17,15 +17,17 @@ import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
 
 @Database(
-    entities = [LogEntry::class, BrowseHistory::class, NetworkCacheEntry::class, PostDraft::class],
-    version = 7,
+    // 1. 移除了 NetworkCacheEntry::class
+    entities = [LogEntry::class, BrowseHistory::class, PostDraft::class],
+    // 2. 版本号从 7 升级至 8
+    version = 8,
     exportSchema = false
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
     abstract fun browseHistoryDao(): BrowseHistoryDao
-    abstract fun networkCacheDao(): NetworkCacheDao
+    // 3. 移除了 networkCacheDao()
     abstract fun postDraftDao(): PostDraftDao
 
     companion object {
@@ -86,11 +88,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // 4. 新增 MIGRATION_7_8：删除 network_cache 表
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override suspend fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("DROP TABLE IF EXISTS `network_cache`")
+            }
+        }
+
         // 定义迁移数组供 Builder 使用
         val ALL_MIGRATIONS: Array<Migration> = arrayOf(
             MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,
             MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,
-            MIGRATION_4_7, MIGRATION_5_7
+            MIGRATION_4_7, MIGRATION_5_7,
+            MIGRATION_7_8 // 5. 将新迁移加入数组
         )
     }
 }

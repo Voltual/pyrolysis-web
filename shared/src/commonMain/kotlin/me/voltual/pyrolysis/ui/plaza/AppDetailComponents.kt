@@ -101,8 +101,8 @@ fun InfoRow(label: String, value: String?) {
         HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
     }
 }
-
-// 新增：获取设备兼容性信息
+/*
+// 获取设备兼容性信息
 @Composable
 fun getDeviceInfo(minSdk: Int?): String {
     val deviceSdk = android.os.Build.VERSION.SDK_INT
@@ -114,7 +114,7 @@ fun getDeviceInfo(minSdk: Int?): String {
             append(" • 不兼容")
         }
     }
-}
+}*/
 
 // --- 平台特定的头部信息组件 ---
 

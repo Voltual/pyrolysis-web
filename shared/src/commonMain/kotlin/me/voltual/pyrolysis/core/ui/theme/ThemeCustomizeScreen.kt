@@ -274,7 +274,7 @@ fun ColorEditItem(colorName: String, currentColor: Color, onColorChange: (Color)
                     val newHex = it.take(6)
                     hexValue = newHex
                     if (newHex.isValidHex()) {
-                        onColorChange(Color(android.graphics.Color.parseColor("#$newHex")))
+                        onColorChange(newHex.toComposeColor())
                     }
                 },
                 label = { Text("HEX") },
@@ -289,12 +289,16 @@ fun ColorEditItem(colorName: String, currentColor: Color, onColorChange: (Color)
 }
 
 @Composable
-fun HsvColorPickerDialog(initialColor: Color, onColorSelected: (Color) -> Unit, onDismiss: () -> Unit) {
-    val hsvArray = FloatArray(3)
-    android.graphics.Color.colorToHSV(initialColor.toArgb(), hsvArray)
-    var hue by remember { mutableStateOf(hsvArray[0]) }
-    var saturation by remember { mutableStateOf(hsvArray[1]) }
-    var value by remember { mutableStateOf(hsvArray[2]) }
+fun HsvColorPickerDialog(
+    initialColor: Color, 
+    onColorSelected: (Color) -> Unit, 
+    onDismiss: () -> Unit
+) {
+    // 使用 remember(initialColor) 锁住初始值，同时彻底丢弃 android.graphics.Color
+    var hue by remember(initialColor) { mutableStateOf(initialColor.hue) }
+    var saturation by remember(initialColor) { mutableStateOf(initialColor.saturation) }
+    var value by remember(initialColor) { mutableStateOf(initialColor.value) }
+    
     val currentColor = remember(hue, saturation, value) { Color.hsv(hue, saturation, value) }
 
     AlertDialog(
@@ -302,8 +306,17 @@ fun HsvColorPickerDialog(initialColor: Color, onColorSelected: (Color) -> Unit, 
         title = { Text("选择颜色") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(64.dp).background(currentColor).border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp)))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), 
+                    horizontalArrangement = Arrangement.SpaceBetween, 
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(currentColor)
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
+                    )
                     Column {
                         Text("HEX: ${currentColor.toHex()}")
                         Text("RGB: ${currentColor.red.to255()}, ${currentColor.green.to255()}, ${currentColor.blue.to255()}")
@@ -311,8 +324,10 @@ fun HsvColorPickerDialog(initialColor: Color, onColorSelected: (Color) -> Unit, 
                 }
                 Text("色相 (0-360°)", style = MaterialTheme.typography.labelMedium)
                 Slider(value = hue, onValueChange = { hue = it }, valueRange = 0f..360f, modifier = Modifier.fillMaxWidth())
+                
                 Text("饱和度 (0-100%)", style = MaterialTheme.typography.labelMedium)
                 Slider(value = saturation, onValueChange = { saturation = it }, valueRange = 0f..1f, modifier = Modifier.fillMaxWidth())
+                
                 Text("亮度 (0-100%)", style = MaterialTheme.typography.labelMedium)
                 Slider(value = value, onValueChange = { value = it }, valueRange = 0f..1f, modifier = Modifier.fillMaxWidth())
             }
@@ -359,6 +374,13 @@ private fun DrawerHeaderPreview(modifier: Modifier = Modifier, backgroundUri: St
 
 fun Color.toHex(): String {
     return String.format("%06X", this.toArgb() and 0xFFFFFF)
+}
+
+// 替代 android.graphics.Color.parseColor("#$newHex") 的纯 Kotlin 方案
+fun String.toComposeColor(): Color {
+    // 将 6 位 Hex 字符串转换为 Long，并补上最高位的 Alpha 通道（FF 表示完全不透明）
+    val colorLong = this.toLong(16) or 0xFF000000_L
+    return Color(colorLong)
 }
 
 fun String.isValidHex(): Boolean =
