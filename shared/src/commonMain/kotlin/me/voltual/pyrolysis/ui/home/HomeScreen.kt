@@ -566,17 +566,7 @@ private fun FunctionItem(
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        when (icon) {
-            is Int -> {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(iconSize)
-                        .padding(end = iconMarginEnd),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+        if (icon) {
             is ImageVector -> {
                 Icon(
                     imageVector = icon,
