@@ -15,7 +15,7 @@ import kotlinx.browser.localStorage
 
 /**
  * 专为浏览器 localStorage 设计的极简 Okio FileSystem。
- * 让 DataStore 官方的 OkioStorage 能够无缝运行在 Web 浏览器环境中。
+ * 完美适配最新版本 Okio 的抽象基类要求，让 DataStore 能够无缝运行在 Web 浏览器中。
  */
 class LocalStorageFileSystem : FileSystem() {
     override fun canonicalize(path: Path): Path = path
@@ -39,7 +39,16 @@ class LocalStorageFileSystem : FileSystem() {
     override fun listOrNull(dir: Path): List<Path>? = null
 
     override fun openReadOnly(file: Path): FileHandle = throw UnsupportedOperationException("WasmJS 环境暂不支持文件句柄操作")
-    override fun openReadWrite(file: Path): FileHandle = throw UnsupportedOperationException("WasmJS 环境暂不支持文件句柄操作")
+    
+    // 适配最新 Okio 抽象方法签名
+    override fun openReadWrite(file: Path, mustCreate: Boolean, mustExist: Boolean): FileHandle {
+        throw UnsupportedOperationException("WasmJS 环境暂不支持文件句柄操作")
+    }
+
+    // 适配最新 Okio 符号链接抽象方法签名
+    override fun createSymlink(source: Path, target: Path) {
+        throw UnsupportedOperationException("WasmJS 环境暂不支持符号链接")
+    }
 
     override fun source(file: Path): Source {
         val key = file.toString()
@@ -59,7 +68,6 @@ class LocalStorageFileSystem : FileSystem() {
             override fun flush() {
                 val bytes = buffer.readByteArray()
                 val chars = CharArray(bytes.size) { i -> bytes[i].toInt().and(0xff).toChar() }
-                // 修复弃用 API 警告，使用标准的 concatToString()
                 val base64Data = kotlinx.browser.window.btoa(chars.concatToString())
                 localStorage.setItem(file.toString(), base64Data)
             }

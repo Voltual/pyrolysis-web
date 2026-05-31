@@ -15,16 +15,10 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import com.google.crypto.tink.Aead
-import com.google.crypto.tink.KeyTemplates
-import com.google.crypto.tink.RegistryConfiguration
-import com.google.crypto.tink.aead.AeadConfig
-import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import me.voltual.pyrolysis.core.database.*
 import me.voltual.pyrolysis.core.database.dao.*
 import me.voltual.pyrolysis.core.ui.theme.ThemeColorDataStore
 import me.voltual.pyrolysis.core.proto.UserCredentials
-//import me.voltual.pyrolysis.core.proto.UserCredentialsSerializer
 import me.voltual.pyrolysis.data.*
 import me.voltual.pyrolysis.feature.store.repository.*
 import me.voltual.pyrolysis.feature.store.worker.workmanagerModule
@@ -88,30 +82,10 @@ single { get<AppDatabase>().logDao() }
 single { get<AppDatabase>().browseHistoryDao() } 
 single { get<AppDatabase>().postDraftDao() }         
 
-/*// Crypto 
-single<Aead> {
-    AeadConfig.register()
-    val keysetHandle = AndroidKeysetManager.Builder()
-        .withSharedPref(androidContext(), "master_keyset", "tink_auth_prefs")
-        .withKeyTemplate(KeyTemplates.get("AES256_GCM"))
-        .withMasterKeyUri("android-keystore://auth_master_key")
-        .build()
-        .keysetHandle
-    keysetHandle.getPrimitive(RegistryConfiguration.get(), Aead::class.java)
-}*/
-
     // =========================================================================
     // 2. 底层 DataStore 实例定义 (Platform Specific Instances)
     // =========================================================================
     
-    // Proto DataStore (用户凭据加密存储)
-/*    single<DataStore<UserCredentials>>(AUTH_STORE_QUALIFIER) {
-        DataStoreFactory.create(
-            serializer = UserCredentialsSerializer(get()),
-            produceFile = { androidContext().dataStoreFile("user_credentials_v2.pb") }
-        )
-    }*/
-
     // Preferences DataStores 物理文件定义
     val storeFiles = mapOf(
         DRAFT_STORE_QUALIFIER to "post_drafts.preferences_pb",
