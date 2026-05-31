@@ -294,11 +294,12 @@ fun HsvColorPickerDialog(
     onColorSelected: (Color) -> Unit, 
     onDismiss: () -> Unit
 ) {
-    // 使用 remember(initialColor) 锁住初始值，同时彻底丢弃 android.graphics.Color
-    var hue by remember(initialColor) { mutableStateOf(initialColor.hue) }
-    var saturation by remember(initialColor) { mutableStateOf(initialColor.saturation) }
-    var value by remember(initialColor) { mutableStateOf(initialColor.value) }
-    
+    // 这样调用
+val hsvArray = initialColor.toHsv()
+var hue by remember { mutableStateOf(hsvArray[0]) }
+var saturation by remember { mutableStateOf(hsvArray[1]) }
+var value by remember { mutableStateOf(hsvArray[2]) }
+
     val currentColor = remember(hue, saturation, value) { Color.hsv(hue, saturation, value) }
 
     AlertDialog(
@@ -387,6 +388,35 @@ fun String.isValidHex(): Boolean =
     this.length == 6 && this.matches(Regex("[0-9A-Fa-f]{6}"))
 
 fun Float.to255(): Int = (this * 255).roundToInt()
+
+fun Color.toHsv(): FloatArray {
+    // 显式指定为 Float，防止跨平台编译器将其误判为内部的 ULong 颜色格式
+    val r: Float = this.red
+    val g: Float = this.green
+    val b: Float = this.blue
+
+    // 显式指定 maxOf / minOf 的泛型类型为 <Float>，彻底解决推导失败
+    val max = maxOf<Float>(r, g, b)
+    val min = minOf<Float>(r, g, b)
+    val delta = max - min
+
+    var h = 0f
+    val s = if (max == 0f) 0f else delta / max
+    val v = max
+
+    // 修复上一版的拼写错误 (p 改为 !=)
+    if (delta != 0f) {
+        h = when (max) {
+            r -> ((g - b) / delta) % 6f
+            g -> ((b - r) / delta) + 2f
+            else -> ((r - g) / delta) + 4f
+        }
+        h *= 60f
+        if (h < 0f) h += 360f
+    }
+
+    return floatArrayOf(h, s, v)
+}
 
 val colorNameTranslations = mapOf(
     "primary" to "主要颜色",
