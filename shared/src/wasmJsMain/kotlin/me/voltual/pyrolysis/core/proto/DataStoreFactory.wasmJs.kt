@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.okio.OkioStorage
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesSerializer
 import okio.Buffer
 import okio.FileHandle
 import okio.FileMetadata
@@ -113,9 +114,12 @@ actual fun createPreferenceDataStore(
     fileName: String,
     context: Any?
 ): DataStore<Preferences> {
-    // 修复：直接使用 KMP 官方推荐的 createWithPath(fileSystem, produceFile) 签名
-    return PreferenceDataStoreFactory.createWithPath(
-        fileSystem = LocalStorageFileSystem(),
-        produceFile = { fileName.toPath() }
+    // 修复：使用内置的 PreferencesSerializer 手动创建 OkioStorage，将自定义文件系统注入 DataStore Preferences
+    return PreferenceDataStoreFactory.create(
+        storage = OkioStorage(
+            fileSystem = LocalStorageFileSystem(),
+            serializer = PreferencesSerializer,
+            producePath = { fileName.toPath() }
+        )
     )
 }
