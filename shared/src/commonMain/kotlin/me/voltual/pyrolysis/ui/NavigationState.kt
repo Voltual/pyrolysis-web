@@ -126,7 +126,7 @@ fun rememberNavigationState(
 
 /**
  * State holder for navigation state.
- * 完全对照官方原版实现
+ * 完全对照官方原版实现并添加了currentRoute
  */
 class NavigationState(
     val startRoute: NavKey,
@@ -134,6 +134,10 @@ class NavigationState(
     val backStacks: Map<NavKey, NavBackStack<NavKey>>
 ) {
     var topLevelRoute: NavKey by topLevelRoute
+    
+    val currentRoute: NavKey?
+        get() = backStacks[topLevelRoute]?.lastOrNull() 
+            ?: backStacks[startRoute]?.lastOrNull()   
     
     val stacksInUse: List<NavKey>
         get() = if (topLevelRoute == startRoute) {
