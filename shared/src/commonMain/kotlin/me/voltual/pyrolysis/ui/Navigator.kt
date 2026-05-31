@@ -26,18 +26,18 @@ class Navigator(
     state.resetToStart()
   }
 
+  // 完美对接强类型路由
   fun navigate(route: AppDestination) {
     forceCleanup()
 
     if (route in state.backStacks.keys) {
       state.topLevelRoute = route
     } else {
-      // 修复：去掉了错误的 .state. 修正为直接调用 state.topLevelRoute
       state.backStacks[state.topLevelRoute]?.add(route)
     }
   }
 
-  // 兼容性重载：如果有些地方仍在使用顶层的 NavKey，进行安全分发
+  // 对外顶层架构兼容
   fun navigate(route: NavKey) {
      if (route is AppDestination) {
          navigate(route)

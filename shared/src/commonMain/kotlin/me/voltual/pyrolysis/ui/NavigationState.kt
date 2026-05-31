@@ -1,4 +1,12 @@
-// Copyright (C) 2025 Voltual
+//Copyright (C) 2025 Voltual
+// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
+//（或任意更新的版本）的条款重新分发和/或修改它。
+//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
+// 有关更多细节，请参阅 GNU 通用公共许可证。
+//
+// 你应该已经收到了一份 GNU 通用公共许可证的副本
+// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+// 使用了 2026 Android Open Source Project 官方架构设计
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.runtime.Composable
@@ -6,7 +14,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -14,87 +21,80 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.SavedStateConfiguration
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import kotlinx.serialization.json.Json
+import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
+import androidx.savedstate.serialization.SavedStateConfiguration
+import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.subclassesOfSealed
 
 /**
- * 跨平台通用的全局 Json 配置
+ * 1. 对应官方的 config 定义
+ * 通过 androidx.savedstate 的多平台开放序列化配置，让 Web/iOS 平台在编译期就能感知多态
  */
-private val NavigationJson = Json {
-    ignoreUnknownKeys = true
-    encodeDefaults = true
-}
-
-/**
- * 官方标准：为你的密封接口创建 required 的跨平台开放多态序列化配置。
- * 这样底层才能无缝支持 Web、iOS 和 Android 应对状态恢复。
- */
-private val KmpNavConfig = SavedStateConfiguration {
+internal val config = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
-            // 一行命令，自动注册 AppDestination 下面所有的 @Serializable 子路由对象/类
+            // 比原版挨个注册子路由更高级：由于你的路由全由 sealed interface 统一管理
+            // 这一行命令可以直接动态抓取 AppDestination 旗下的所有类，简洁且不易遗漏
             subclassesOfSealed<AppDestination>()
         }
     }
 }
 
 /**
- * 创建一个支持跨平台（包含 Android / Web / iOS）的标准导航状态。
+ * 2. 强类型绑定的跨平台持久化导航状态
  */
 @Composable
 fun rememberNavigationState(
-    startRoute: AppDestination,
+    startRoute: AppDestination, 
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
-    
-    // 使用标准的基于 kotlinx.serialization 的多态 Saver，彻底避开老旧 Android 特有方法
-    val topLevelRoute = rememberSaveable(
-        saver = remember(startRoute) {
-            val polymorphicSerializer = AppDestination.serializer()
-            Saver<MutableState<AppDestination>, String>(
-                save = { state -> 
-                    NavigationJson.encodeToString(polymorphicSerializer, state.value) 
-                },
-                restore = { jsonString -> 
-                    mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
-                }
-            )
-        }
+
+    // 严丝合缝对齐官方的 rememberSerializable 持久化方案
+    // 自动利用对齐多平台的 PolymorphicSerializer 处理多态子路由状态
+    val topLevelRoute = rememberSerializable(
+        startRoute, topLevelRoutes,
+        configuration = config,
+        serializer = MutableStateSerializer(PolymorphicSerializer(NavKey::class))
     ) {
-        mutableStateOf(startRoute)
+        mutableStateOf(startRoute as NavKey)
     }
 
-    // 核心修复：传入官方在多平台下强要求的 KmpNavConfig 配置对象！
-    // 并且显式将返回的 NavBackStack<NavKey> 转型为我们收窄的强类型 AppDestination
-    @Suppress("UNCHECKED_CAST")
-    val backStacks = topLevelRoutes.associateWith { key -> 
-        rememberNavBackStack(KmpNavConfig, key) as NavBackStack<AppDestination>
+    // 将官方返回的通用 NavBackStack<NavKey> 无缝且安全地封装进我们的强类型 Map 中
+    val backStacks = topLevelRoutes.associateWith { key ->
+        rememberNavBackStack(config, key)
     }
 
     return remember(startRoute, topLevelRoutes) {
         NavigationState(
-            startRoute = startRoute,
-            topLevelRoute = topLevelRoute,
+            startRoute = startRoute, 
+            topLevelRoute = topLevelRoute, 
             backStacks = backStacks
         )
     }
 }
 
+/**
+ * 3. 导航核心状态持有者（完全抹平泛型断层）
+ */
 class NavigationState(
     val startRoute: AppDestination,
-    topLevelRoute: MutableState<AppDestination>,
-    val backStacks: Map<AppDestination, NavBackStack<AppDestination>>
+    topLevelRoute: MutableState<NavKey>,
+    val backStacks: Map<AppDestination, NavBackStack<NavKey>>
 ) {
-    var topLevelRoute: AppDestination by topLevelRoute
+    // 隐藏内部的底层 NavKey，对外暴露我们绝对强类型的 AppDestination
+    var topLevelRoute: AppDestination
+        get() = _topLevelRoute as AppDestination
+        set(value) { _topLevelRoute = value }
+        
+    private var _topLevelRoute: NavKey by topLevelRoute
     
     val currentRoute: AppDestination?
-        get() = backStacks[topLevelRoute]?.lastOrNull() 
-            ?: backStacks[startRoute]?.lastOrNull()
+        get() = backStacks[topLevelRoute]?.lastOrNull() as? AppDestination
+            ?: backStacks[startRoute]?.lastOrNull() as? AppDestination
 
     val stacksInUse: List<AppDestination>
         get() = if (topLevelRoute == startRoute) {
@@ -122,34 +122,28 @@ class NavigationState(
 }
 
 /**
- * 将 NavigationState 转换为 NavEntries，保持与官方 Recipe 一致的响应式更新逻辑
+ * 4. 转换 NavigationState 到 NavEntries (响应式观察)
  */
 @Composable
 fun NavigationState.toEntries(
     entryProvider: (AppDestination) -> NavEntry<AppDestination>
 ): SnapshotStateList<NavEntry<AppDestination>> {
 
+    // 完美契合官方的 Decorator 架构逻辑
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
-        val baseDecorator = rememberSaveableStateHolderNavEntryDecorator<AppDestination>()
-        @Suppress("UNCHECKED_CAST")
-        val decorators = listOf(baseDecorator) as List<androidx.navigation3.runtime.NavEntryDecorator<NavKey>>
-        
+        val decorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+        )
         @Suppress("UNCHECKED_CAST")
         rememberDecoratedNavEntries(
-            backStack = stack as NavBackStack<NavKey>, 
-            entryDecorators = decorators,
+            backStack = stack, 
+            entryDecorators = decorators, 
             entryProvider = entryProvider as (NavKey) -> NavEntry<NavKey>
         ) as List<NavEntry<AppDestination>>
     }
 
     return remember(topLevelRoute, startRoute, decoratedEntries) {
-        val routesInUse = if (topLevelRoute == startRoute) {
-            listOf(startRoute)
-        } else {
-            listOf(startRoute, topLevelRoute)
-        }
-
-        routesInUse
+        stacksInUse
             .flatMap { decoratedEntries[it] ?: emptyList() }
             .toMutableStateList()
     }
