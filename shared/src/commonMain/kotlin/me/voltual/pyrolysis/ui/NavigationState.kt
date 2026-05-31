@@ -25,13 +25,12 @@ private val NavigationJson = Json {
     encodeDefaults = true
 }
 
-// 模拟一个内存级/平台级的状态暂存器，防止 Web 端/桌面端旋转或容器缩放时状态丢失
-// 如果未来需要接入 Web 的 LocalStorage 或 DataStore，直接改这里即可
+// 内存级平台暂存器，防 Web 端组件重绘/配置变更导致状态丢失
 private var kmpNavigationCache: String? = null
 
 /**
  * 创建一个支持跨平台（包含 Web / Wasm）的状态持久化导航状态。
- * 通过剥离 rememberSaveable，改用 LaunchedEffect / 内存持久化，彻底解决多平台签名冲突。
+ * 彻底移除 rememberSaveable，改用纯 remember + LaunchedEffect，根除多平台签名冲突。
  */
 @Composable
 fun rememberNavigationState(
@@ -41,7 +40,7 @@ fun rememberNavigationState(
     
     val polymorphicSerializer = remember(startRoute) { AppDestination.serializer() }
 
-    // 1. 初始化时尝试从跨平台缓存中恢复，拿不到则使用 startRoute
+    // 修复：彻底切换为普通的 remember，不走 rememberSaveable 任何多平台歧义重载
     val topLevelRoute = remember(startRoute) {
         val initialRoute = try {
             kmpNavigationCache?.let { 
@@ -53,7 +52,7 @@ fun rememberNavigationState(
         mutableStateOf(initialRoute)
     }
 
-    // 2. 当路由发生改变时，自动同步到跨平台存储中，起到 rememberSaveable 的作用
+    // 当路由改变时，自动将状态落盘/缓存
     androidx.compose.runtime.LaunchedEffect(topLevelRoute.value) {
         try {
             kmpNavigationCache = NavigationJson.encodeToString(polymorphicSerializer, topLevelRoute.value)
@@ -141,6 +140,6 @@ fun NavigationState.toEntries(
 
         routesInUse
             .flatMap { decoratedEntries[it] ?: emptyList() }
-            .toMutableStateList
+            .toMutableStateList() // 修复：补全了漏掉的调用小括号 ()
     }
 }
