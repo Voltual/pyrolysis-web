@@ -6,8 +6,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -27,8 +25,13 @@ private val NavigationJson = Json {
     encodeDefaults = true
 }
 
+// 模拟一个内存级/平台级的状态暂存器，防止 Web 端/桌面端旋转或容器缩放时状态丢失
+// 如果未来需要接入 Web 的 LocalStorage 或 DataStore，直接改这里即可
+private var kmpNavigationCache: String? = null
+
 /**
- * 创建一个支持跨平台（Android / iOS / Desktop）的状态持久化导航状态。
+ * 创建一个支持跨平台（包含 Web / Wasm）的状态持久化导航状态。
+ * 通过剥离 rememberSaveable，改用 LaunchedEffect / 内存持久化，彻底解决多平台签名冲突。
  */
 @Composable
 fun rememberNavigationState(
@@ -36,28 +39,25 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
     
-    // 创建多态序列化器
     val polymorphicSerializer = remember(startRoute) { AppDestination.serializer() }
-    
-    // 手工构建跨平台 Saver
-    val stateSaver = remember(polymorphicSerializer) {
-        Saver<MutableState<AppDestination>, String>(
-            save = { state -> 
-                NavigationJson.encodeToString(polymorphicSerializer, state.value) 
-            },
-            restore = { jsonString -> 
-                mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
-            }
-        )
+
+    // 1. 初始化时尝试从跨平台缓存中恢复，拿不到则使用 startRoute
+    val topLevelRoute = remember(startRoute) {
+        val initialRoute = try {
+            kmpNavigationCache?.let { 
+                NavigationJson.decodeFromString(polymorphicSerializer, it) 
+            } ?: startRoute
+        } catch (e: Exception) {
+            startRoute
+        }
+        mutableStateOf(initialRoute)
     }
 
-    // 修复：显式提供 inputs 参数数组作为第一个参数，完全对齐最基础的 rememberSaveable(vararg inputs, saver) 签名
-    // 这样编译器就绝不可能再把它错认成 SavedStateConfiguration 签名
-    val topLevelRoute = rememberSaveable(
-        startRoute, topLevelRoutes, // 显式作为 vararg inputs 传入
-        saver = stateSaver
-    ) {
-        mutableStateOf(startRoute)
+    // 2. 当路由发生改变时，自动同步到跨平台存储中，起到 rememberSaveable 的作用
+    androidx.compose.runtime.LaunchedEffect(topLevelRoute.value) {
+        try {
+            kmpNavigationCache = NavigationJson.encodeToString(polymorphicSerializer, topLevelRoute.value)
+        } catch (_: Exception) {}
     }
 
     // 针对 Navigation 3 内部返回的 NavBackStack<NavKey> 进行安全向下转型
@@ -94,10 +94,7 @@ class NavigationState(
         }
 
     fun resetToStart() {
-        // 1. 先切换路由标识
         topLevelRoute = startRoute
-        
-        // 2. 遍历堆栈进行清理
         backStacks.forEach { (key, stack) ->
             if (key == startRoute) {
                 while (stack.size > 1) {
@@ -144,6 +141,6 @@ fun NavigationState.toEntries(
 
         routesInUse
             .flatMap { decoratedEntries[it] ?: emptyList() }
-            .toMutableStateList()
+            .toMutableStateList
     }
 }
