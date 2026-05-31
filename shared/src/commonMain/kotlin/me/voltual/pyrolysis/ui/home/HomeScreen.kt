@@ -574,7 +574,7 @@ private fun FunctionItem(
                         .padding(end = iconMarginEnd),
                     tint = MaterialTheme.colorScheme.primary
                 )
-        }
+        
 
         Text(
             text = label,
