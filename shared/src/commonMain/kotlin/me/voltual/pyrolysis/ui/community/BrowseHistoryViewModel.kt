@@ -15,7 +15,7 @@ import me.voltual.pyrolysis.core.database.BrowseHistoryRepository
 import me.voltual.pyrolysis.core.database.BrowseHistory
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @KoinViewModel
 class BrowseHistoryViewModel(private val browseHistoryRepository : BrowseHistoryRepository) : ViewModel() {

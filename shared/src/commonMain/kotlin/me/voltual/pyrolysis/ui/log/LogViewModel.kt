@@ -16,7 +16,7 @@ import me.voltual.pyrolysis.core.database.LogEntry
 import me.voltual.pyrolysis.core.database.LogRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @KoinViewModel
 class LogViewModel(private val logRepository : LogRepository) : ViewModel() {

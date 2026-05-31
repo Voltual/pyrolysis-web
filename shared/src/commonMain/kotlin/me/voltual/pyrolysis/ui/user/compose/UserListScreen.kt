@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import me.voltual.pyrolysis.KtorClient
@@ -177,15 +176,9 @@ private fun SafeLazyColumn(
 
 @Composable
 private fun StableUserListItem(
-    user: KtorClient.UserItem,
+    user = KtorClient.UserItem,
     onClick: () -> Unit
 ) {
-    // 修复：完全稳定的状态管理
-    val stableUser = remember(user) { user }
-    val avatarUrl = remember(stableUser.usertx) { stableUser.usertx }
-    val nickname = remember(stableUser.nickname) { stableUser.nickname }
-    val hierarchy = remember(stableUser.hierarchy) { stableUser.hierarchy }
-
     Surface(
         onClick = onClick,
         modifier = Modifier
@@ -196,11 +189,9 @@ private fun StableUserListItem(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 彻底精简：不再使用 ImageRequest.Builder，直接传入字符串
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(avatarUrl)
-                    // .crossfade(true)
-                    .build(),
+                model = user.usertx,
                 contentDescription = "用户头像",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -212,7 +203,7 @@ private fun StableUserListItem(
 
             Column {
                 Text(
-                    text = nickname,
+                    text = user.nickname,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -220,7 +211,7 @@ private fun StableUserListItem(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = hierarchy,
+                    text = user.hierarchy,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

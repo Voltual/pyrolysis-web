@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -63,7 +62,6 @@ fun AppDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: AppDetailComposeViewModel = koinViewModel()
 ) {
-    val context = LocalContext.current
     val navigator = LocalNavigator.current
     
     val uriHandler = LocalUriHandler.current

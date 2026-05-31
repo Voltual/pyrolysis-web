@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager // 引入 Compose 剪贴板管理器
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString // 引入富文本类型
 import androidx.compose.ui.unit.dp
 import me.voltual.pyrolysis.core.database.LogEntry
@@ -51,7 +50,6 @@ fun LogScreen(
     val logs by viewModel.logs.collectAsState()
     val isSelectionMode by viewModel.isSelectionMode.collectAsState()
     val selectedCount = viewModel.selectedItems.collectAsState().value.size
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     var showClearAllDialog by remember { mutableStateOf(false) }

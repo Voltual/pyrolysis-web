@@ -19,7 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -83,7 +82,6 @@ fun PostCreateScreen(
     var manualImageUrls by rememberSaveable { mutableStateOf("") }
     var selectedRefundReason by rememberSaveable { mutableStateOf(REFUND_REASONS.first().name) }
 
-    val context = LocalContext.current
     val deviceNameDataStore: DeviceNameDataStore = koinInject()
 
     LaunchedEffect(Unit) {

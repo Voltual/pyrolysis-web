@@ -8,7 +8,7 @@ import me.voltual.pyrolysis.data.PlayerDataStore
 import me.voltual.pyrolysis.utils.decompressDanmaku // 导入抽象函数
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 enum class VideoScaleMode { FIT, FILL, ZOOM }
 

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.voltual.pyrolysis.AppStore
@@ -28,7 +27,6 @@ import org.koin.compose.koinInject
 fun HomeDestination(
     snackbarHostState: SnackbarHostState
 ) {
-    val context = LocalContext.current
     val viewModel: HomeViewModel = koinViewModel()
     val authRepository: AuthRepository = koinInject()
     

@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler // 引入 Compose 跨平台 UriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -202,17 +201,14 @@ fun MyReviewItem(
             // 评价头部
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(review.sender.avatarUrl ?: "https://icdn.binmt.cc/2603/69ad3fa30e30c.png")
-                        .diskCachePolicy(CachePolicy.DISABLED)
-                        .build(),
-                    contentDescription = "用户头像",
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .clickable { onUserClick(review.sender.id) },
-                    contentScale = ContentScale.Crop
-                )
+    model = review.sender.avatarUrl ?: "https://icdn.binmt.cc/2603/69ad3fa30e30c.png",
+    contentDescription = "用户头像",
+    modifier = Modifier
+        .size(32.dp)
+        .clip(CircleShape)
+        .clickable { onUserClick(review.sender.id) },
+    contentScale = ContentScale.Crop
+)
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(

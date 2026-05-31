@@ -21,7 +21,7 @@ import me.voltual.pyrolysis.feature.store.repository.IAppStoreRepository
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes // 新增扩展导入
 import io.github.vinceglb.filekit.name      // 新增扩展导入
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @KoinViewModel
 class UserProfileViewModel(

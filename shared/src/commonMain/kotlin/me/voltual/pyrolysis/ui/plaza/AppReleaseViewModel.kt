@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemTemporaryDirectory

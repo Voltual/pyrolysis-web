@@ -9,39 +9,28 @@
 
 package me.voltual.pyrolysis.ui.user
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.voltual.pyrolysis.AppStore
-import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.unified.FollowStatus
 import me.voltual.pyrolysis.data.unified.UnifiedUserDetail
 import me.voltual.pyrolysis.core.ui.theme.*
@@ -56,23 +45,19 @@ fun UserDetailScreen(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState
 ) {
-    // 从 ViewModel 获取状态
     val userData by viewModel.userData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // 下拉刷新状态
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
 
-    // 监听 ViewModel 状态变化以结束刷新状态
     LaunchedEffect(isLoading, errorMessage, userData) {
         if (!isLoading && isRefreshing) {
             isRefreshing = false
         }
     }
 
-    // 使用 MD3 的 PullToRefreshBox
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = {
@@ -136,7 +121,8 @@ private fun ScreenContent(
                         onImagePreview = onImagePreview,
                         snackbarHostState = snackbarHostState,
                         viewModel = viewModel,
-                        isRefreshing = isRefreshing
+                        isRefreshing = isRefreshing,
+                        isProcessing = isLoading // 此时无论是页面刷新还是操作交互，都视为处理中
                     )
                     else -> Text("不支持的应用商店")
                 }
@@ -153,7 +139,8 @@ private fun XiaoQuProfileContent(
     onImagePreview: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     viewModel: UserDetailViewModel,
-    isRefreshing: Boolean
+    isRefreshing: Boolean,
+    isProcessing: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -177,7 +164,7 @@ private fun XiaoQuProfileContent(
             },
             snackbarHostState = snackbarHostState,
             viewModel = viewModel,
-            isRefreshing = isRefreshing
+            isDisable = isProcessing || isRefreshing
         )
         StatsCard(
             userData = userData,
@@ -212,10 +199,7 @@ private fun SieneShopProfileContent(
                     verticalArrangement = Arrangement.Center
                 ) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(userData.avatarUrl ?: "https://icdn.binmt.cc/2603/69ad3fa30e30c.png")
-                            .diskCachePolicy(CachePolicy.DISABLED)
-                            .build(),
+                        model = userData.avatarUrl ?: "https://icdn.binmt.cc/2603/69ad3fa30e30c.png",
                         contentDescription = "用户头像",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -332,10 +316,7 @@ private fun UserAvatar(
     modifier: Modifier = Modifier
 ) {
     AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(avatarUrl)
-            .diskCachePolicy(CachePolicy.DISABLED)
-            .build(),
+        model = avatarUrl,
         contentDescription = "用户头像",
         contentScale = ContentScale.Crop,
         modifier = modifier
@@ -385,12 +366,10 @@ private fun ActionButtonsRow(
     onResourcesClick: (Long) -> Unit,
     snackbarHostState: SnackbarHostState,
     viewModel: UserDetailViewModel,
-    isRefreshing: Boolean
+    isDisable: Boolean // 外部传入的是否禁用控制
 ) {
     val coroutineScope = rememberCoroutineScope()
-
     val followStatus = userData.followStatus
-    val isProcessingFollowAction by viewModel.isLoading.collectAsState()
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -401,112 +380,68 @@ private fun ActionButtonsRow(
                 FollowStatus.NotFollowed -> {
                     BBQButton(
                         onClick = {
-                            if (!isRefreshing) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "已关注 ${userData.displayName}，稍后将会刷新数据",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                    viewModel.followUser(userData.id)
-                                }
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "已关注 ${userData.displayName}，稍后将会刷新数据",
+                                    duration = SnackbarDuration.Short
+                                )
+                                viewModel.followUser(userData.id)
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        text = {
-                            if (!isRefreshing && isProcessingFollowAction) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text("关注")
-                            }
-                        },
-                        enabled = !isRefreshing && !isProcessingFollowAction
+                        text = { Text("关注") },
+                        enabled = !isDisable // 交互进行时直接禁用，防止用户干扰
                     )
                 }
 
                 FollowStatus.YouFollowed -> {
                     BBQOutlinedButton(
                         onClick = {
-                            if (!isRefreshing) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "已取消关注 ${userData.displayName}，稍后将会刷新数据",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                    viewModel.unfollowUser(userData.id)
-                                }
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "已取消关注 ${userData.displayName}，稍后将会刷新数据",
+                                    duration = SnackbarDuration.Short
+                                )
+                                viewModel.unfollowUser(userData.id)
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        text = {
-                            if (!isRefreshing && isProcessingFollowAction) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text("已关注")
-                            }
-                        },
-                        enabled = !isRefreshing && !isProcessingFollowAction
+                        text = { Text("已关注") },
+                        enabled = !isDisable
                     )
                 }
 
                 FollowStatus.FollowedYou -> {
                     BBQButton(
                         onClick = {
-                            if (!isRefreshing) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "已回关 ${userData.displayName}，稍后将会刷新数据",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                    viewModel.followUser(userData.id)
-                                }
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "已回关 ${userData.displayName}，稍后将会刷新数据",
+                                    duration = SnackbarDuration.Short
+                                )
+                                viewModel.followUser(userData.id)
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        text = {
-                            if (!isRefreshing && isProcessingFollowAction) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text("回关")
-                            }
-                        },
-                        enabled = !isRefreshing && !isProcessingFollowAction
+                        text = { Text("回关") },
+                        enabled = !isDisable
                     )
                 }
 
                 FollowStatus.MutualFollow -> {
                     BBQOutlinedButton(
                         onClick = {
-                            if (!isRefreshing) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "已取消关注 ${userData.displayName}，稍后将会刷新数据",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                    viewModel.unfollowUser(userData.id)
-                                }
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "已取消关注 ${userData.displayName}，稍后将会刷新数据",
+                                    duration = SnackbarDuration.Short
+                                )
+                                viewModel.unfollowUser(userData.id)
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        text = {
-                            if (!isRefreshing && isProcessingFollowAction) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text("互相关注")
-                            }
-                        },
-                        enabled = !isRefreshing && !isProcessingFollowAction
+                        text = { Text("互相关注") },
+                        enabled = !isDisable
                     )
                 }
             }
@@ -515,7 +450,8 @@ private fun ActionButtonsRow(
         BBQOutlinedButton(
             onClick = { onResourcesClick(userData.id) },
             modifier = Modifier.weight(1f),
-            text = { Text("${userData.displayName}的资源") }
+            text = { Text("${userData.displayName}的资源") },
+            enabled = !isDisable
         )
     }
 }

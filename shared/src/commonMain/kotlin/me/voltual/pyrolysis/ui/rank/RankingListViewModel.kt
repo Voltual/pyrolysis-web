@@ -14,7 +14,7 @@ import me.voltual.pyrolysis.KtorClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 // 排序类型枚举
 enum class SortType(val displayName: String, val apiValue: String) {

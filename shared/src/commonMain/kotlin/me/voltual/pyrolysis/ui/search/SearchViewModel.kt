@@ -16,7 +16,7 @@ import me.voltual.pyrolysis.core.database.BrowseHistory
 import androidx.lifecycle.viewModelScope
 import me.voltual.pyrolysis.KtorClient 
 import kotlinx.coroutines.flow.*
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import me.voltual.pyrolysis.data.SearchHistoryDataStore
 import me.voltual.pyrolysis.data.UserFilterDataStore
 import kotlinx.coroutines.launch

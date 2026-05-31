@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.UserFilterDataStore
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @KoinViewModel
 class MyPostsViewModel(private val userFilterDataStore: UserFilterDataStore) : ViewModel() {

@@ -20,7 +20,6 @@ import me.voltual.pyrolysis.data.UpdateSettingsDataStore
 import me.voltual.pyrolysis.KtorClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.compose.ui.platform.LocalContext
 import me.voltual.pyrolysis.BuildConfig
 import me.voltual.pyrolysis.data.UpdateInfo
 import kotlinx.serialization.json.Json
@@ -28,7 +27,7 @@ import io.ktor.client.call.body
 import me.voltual.pyrolysis.core.ui.components.UpdateDialog
 import kotlinx.serialization.decodeFromString
 import me.voltual.pyrolysis.core.utils.UpdateChecker
-import org.koin.android.annotation.KoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @KoinViewModel
 class UpdateSettingsViewModel(
