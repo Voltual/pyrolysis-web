@@ -55,7 +55,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 // Koin 依赖注入 (Android, Compose & ViewModel)
-import org.koin.android.ext.android.inject
 import org.koin.compose.koinInject
 import org.koin.androidx.compose.koinViewModel
 

@@ -7,6 +7,7 @@ import me.voltual.pyrolysis.core.proto.UserCredentialsSerializer
 import me.voltual.pyrolysis.data.*
 import me.voltual.pyrolysis.ui.auth.LoginViewModel
 import me.voltual.pyrolysis.ui.billing.BillingViewModel
+import me.voltual.pyrolysis.ui.plaza.*
 import me.voltual.pyrolysis.ui.community.*
 import me.voltual.pyrolysis.ui.home.HomeViewModel
 import me.voltual.pyrolysis.ui.log.LogViewModel
