@@ -49,6 +49,9 @@ kotlinx-collections = "0.4.0"
 html-converter = "1.1.0"
 kotlinx-io = "0.9.0" 
 
+# --- 加密核心库 ---
+cryptography = "0.6.0"
+
 [libraries]
 # 基础
 android-desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
@@ -165,6 +168,10 @@ protoc-artifact = { module = "com.google.protobuf:protoc", version.ref = "protob
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections" }
 compose-html-converter = { module = "be.digitalia.compose.htmlconverter:htmlconverter", version.ref = "html-converter" }
+
+# --- Cryptography Kotlin 依赖 ---
+cryptography-core = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptography" }
+cryptography-provider-optimal = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-optimal", version.ref = "cryptography" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "pyrolysis-agp" }

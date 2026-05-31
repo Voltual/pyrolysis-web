@@ -3,12 +3,15 @@
 
 package me.voltual.pyrolysis.core.proto
 
+import kotlinx.serialization.Serializable
+
 /**
  * 纯 Kotlin 伪造的 UserCredentials 实体类。
- * 摆脱了 Google Protobuf 对 JVM 的依赖，确保 KMP 全平台（iOS/Desktop）顺利编译。
- * 内部模拟了 Protobuf 的 Builder 模式，契合原有的业务调用。
+ * 摆脱了 Google Protobuf 对 JVM 的依赖，确保 KMP 全平台（iOS/Desktop/Wasm）顺利编译。
+ * 支持 kotlinx.serialization 序列化。
  */
-class UserCredentials private constructor(
+@Serializable
+class UserCredentials internal constructor(
     val username: String,
     val password: String,
     val token: String,

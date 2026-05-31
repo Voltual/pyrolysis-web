@@ -18,24 +18,20 @@ buildConfig {
     useKotlinOutput()
     packageName("me.voltual.pyrolysis")
     
-    // 直接在这里写死，简单粗暴且完全可行
     buildConfigField("VERSION_NAME", "22.1")
     buildConfigField("VERSION_CODE", 511) 
 }
 
 kotlin {
-    // AGP 9.0 KMP 库专用 Android 配置块
     android {
         namespace = "me.voltual.pyrolysis.shared"
         compileSdk = 37
-        minSdk = 24 // 直接设置，不需要 defaultConfig
+        minSdk = 24
         
-        // 开启 Android 资源支持（如果以后要放图片、字符串到 shared）
         androidResources {
             enable = true
         }
 
-        // 替代旧的 compileOptions 和 kotlinOptions
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -82,10 +78,13 @@ kotlin {
                 implementation(libs.coil.compose)
                 implementation(libs.coil.network.ktor)
                 
-                // DataStore library (这里的datastore一定要+"-core"并且得是1.3.0-alpha01之后才支持wasm+js)
+                // DataStore library
                 implementation("androidx.datastore:datastore-core:1.3.0-alpha09")
-                // The Preferences DataStore library
                 implementation("androidx.datastore:datastore-preferences-core:1.3.0-alpha09")
+
+                // Cryptography Kotlin
+                implementation(libs.cryptography.core)
+                implementation(libs.cryptography.provider.optimal)
             }
         }
 
@@ -120,8 +119,6 @@ room3 {
 }
 
 dependencies {
-    // 💡 关键修改：彻底删除了引发错误的 kspCommonMainMetadata 这一行
-    // 仅为具体的目标平台单独配置 Room KSP 编译器
     add("kspAndroid", libs.room3.compiler)
     add("kspWasmJs", libs.room3.compiler)
 }
