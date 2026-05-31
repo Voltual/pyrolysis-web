@@ -23,7 +23,7 @@ import io.github.vinceglb.filekit.readBytes // 新增扩展导入
 import io.github.vinceglb.filekit.name      // 新增扩展导入
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
+
 class UserProfileViewModel(
     private val repositories: Map<AppStore, IAppStoreRepository>,
     private val deviceNameDataStore: DeviceNameDataStore

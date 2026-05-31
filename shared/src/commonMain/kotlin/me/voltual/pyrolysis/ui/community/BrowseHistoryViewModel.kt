@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
 class BrowseHistoryViewModel(private val browseHistoryRepository : BrowseHistoryRepository) : ViewModel() {
     
     private val _historyList = MutableStateFlow<List<BrowseHistory>>(emptyList())

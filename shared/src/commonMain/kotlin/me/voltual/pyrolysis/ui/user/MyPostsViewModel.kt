@@ -17,7 +17,7 @@ import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.UserFilterDataStore
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
+
 class MyPostsViewModel(private val userFilterDataStore: UserFilterDataStore) : ViewModel() {
     
     private val _posts = MutableStateFlow<List<KtorClient.Post>>(emptyList())

@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -647,9 +646,7 @@ fun AppGridItem(
             verticalArrangement = Arrangement.Center
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(app.iconUrl)
-                    .build(),
+                model = app.iconUrl,
                 contentDescription = app.name,
                 modifier = Modifier
                     .size(56.dp)
@@ -692,11 +689,7 @@ fun AppListItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(app.iconUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = app.name,
+                model = app.iconUrl,                contentDescription = app.name,
                 modifier = Modifier
                     .size(48.dp)
                     .clip(MaterialTheme.shapes.small)

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.koin.compose.viewmodel.koinViewModel
 import kotlinx.coroutines.launch
 
-@KoinViewModel
+
 class MyCommentsViewModel(
     private val repositories: Map<AppStore, IAppStoreRepository>
 ) : ViewModel() {

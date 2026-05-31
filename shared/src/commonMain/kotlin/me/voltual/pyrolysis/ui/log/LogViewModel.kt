@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
+
 class LogViewModel(private val logRepository : LogRepository) : ViewModel() {
 
     val logs: StateFlow<List<LogEntry>> = logRepository.allLogs

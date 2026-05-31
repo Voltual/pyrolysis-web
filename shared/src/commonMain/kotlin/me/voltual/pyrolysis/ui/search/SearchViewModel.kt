@@ -33,7 +33,7 @@ sealed class SearchResultItem {
     data class LogItem(val log: me.voltual.pyrolysis.core.database.LogEntry) : SearchResultItem()
 }
 
-@KoinViewModel
+
 class SearchViewModel(
     private val searchHistoryDataStore: SearchHistoryDataStore,
     private val userFilterDataStore: UserFilterDataStore,

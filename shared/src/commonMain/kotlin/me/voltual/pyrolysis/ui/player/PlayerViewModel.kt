@@ -17,7 +17,7 @@ data class PlayerSettings(
     val danmakuSize: Float = 1.2f
 )
 
-@KoinViewModel
+
 class PlayerViewModel(
     private val playerDataStore: PlayerDataStore
 ) : ViewModel() {

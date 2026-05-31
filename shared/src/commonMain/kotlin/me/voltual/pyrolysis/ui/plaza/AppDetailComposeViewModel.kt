@@ -25,7 +25,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-@KoinViewModel
+
 class AppDetailComposeViewModel(
     private val repositories: Map<AppStore, IAppStoreRepository>
 ) : ViewModel() {

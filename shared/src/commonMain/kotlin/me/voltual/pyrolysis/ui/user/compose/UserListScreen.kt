@@ -191,7 +191,7 @@ private fun StableUserListItem(
         ) {
             // 彻底精简：不再使用 ImageRequest.Builder，直接传入字符串
             AsyncImage(
-                model = user.usertx,
+                model = avatarUrl,
                 contentDescription = "用户头像",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -203,7 +203,7 @@ private fun StableUserListItem(
 
             Column {
                 Text(
-                    text = user.nickname,
+                    text = nickname,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -211,7 +211,7 @@ private fun StableUserListItem(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = user.hierarchy,
+                    text = hierarchy,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

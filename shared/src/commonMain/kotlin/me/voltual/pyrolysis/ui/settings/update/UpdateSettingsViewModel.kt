@@ -29,7 +29,7 @@ import kotlinx.serialization.decodeFromString
 import me.voltual.pyrolysis.core.utils.UpdateChecker
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
+
 class UpdateSettingsViewModel(
     private val updateSettingsDataStore: UpdateSettingsDataStore // 注入
 ) : ViewModel() {

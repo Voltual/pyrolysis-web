@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
+
 class VersionListViewModel(
     private val repositories: Map<AppStore, IAppStoreRepository>
 ) : ViewModel() {

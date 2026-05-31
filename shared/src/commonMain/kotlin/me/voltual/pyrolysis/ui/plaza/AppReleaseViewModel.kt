@@ -38,7 +38,7 @@ import kotlinx.io.Source
 import kotlin.time.Clock
 import kotlin.math.roundToInt
 
-@KoinViewModel
+
 class AppReleaseViewModel(
     private val xiaoQuRepo: XiaoQuRepository
 ) : ViewModel() {

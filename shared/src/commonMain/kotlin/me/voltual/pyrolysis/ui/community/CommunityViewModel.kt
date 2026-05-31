@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import me.voltual.pyrolysis.KtorClient
 import org.koin.compose.viewmodel.koinViewModel
 
-@KoinViewModel
+
 class CommunityViewModel : ViewModel() {
     private val _posts = MutableStateFlow(emptyList<KtorClient.Post>())
     val posts: StateFlow<List<KtorClient.Post>> = _posts.asStateFlow()
