@@ -1,4 +1,11 @@
-// Copyright (C) 2025 Voltual
+//Copyright (C) 2025 Voltual
+// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
+//（或任意更新的版本）的条款重新分发和/或修改它。
+//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
+// 有关更多细节，请参阅 GNU 通用公共许可证。
+//
+// 你应该已经收到了一份 GNU 通用公共许可证的副本
+// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.runtime.Composable
@@ -6,31 +13,50 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
-import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.runtime.serialization.NavKeySerializer
-import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
+import kotlinx.serialization.json.Json
 
 /**
- * Create a navigation state that persists config changes and process death.
+ * 跨平台通用的全局 Json 配置，用于多态导航状态的序列化
  */
+private val NavigationJson = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
 
+/**
+ * 创建一个支持跨平台（Android / iOS / Desktop）的状态持久化导航状态。
+ * 在 Android 上支持进程死掉重建，在其他平台支持配置变更（如屏幕旋转、窗口缩放）。
+ */
 @Composable
 fun rememberNavigationState(
-    startRoute: NavKey,
-    topLevelRoutes: Set<NavKey>
+    startRoute: AppDestination,
+    topLevelRoutes: Set<AppDestination>
 ): NavigationState {
-    val topLevelRoute = rememberSerializable(
+    
+    // 使用基于 kotlinx.serialization 的自定义 Saver 替代 Android 特有的 NavKeySerializer
+    val topLevelRoute = rememberSaveable(
         startRoute, topLevelRoutes,
-        serializer = MutableStateSerializer(NavKeySerializer())
+        saver = remember(startRoute) {
+            val polymorphicSerializer = AppDestination.serializer()
+            Saver<MutableState<AppDestination>, String>(
+                save = { state -> 
+                    NavigationJson.encodeToString(polymorphicSerializer, state.value) 
+                },
+                restore = { jsonString -> 
+                    mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
+                }
+            )
+        }
     ) {
         mutableStateOf(startRoute)
     }
@@ -47,17 +73,17 @@ fun rememberNavigationState(
 }
 
 class NavigationState(
-    val startRoute: NavKey,
-    topLevelRoute: MutableState<NavKey>,
-    val backStacks: Map<NavKey, NavBackStack<NavKey>>
+    val startRoute: AppDestination,
+    topLevelRoute: MutableState<AppDestination>,
+    val backStacks: Map<AppDestination, NavBackStack<AppDestination>>
 ) {
-    var topLevelRoute: NavKey by topLevelRoute
+    var topLevelRoute: AppDestination by topLevelRoute
     
-    val currentRoute: NavKey?
+    val currentRoute: AppDestination?
         get() = backStacks[topLevelRoute]?.lastOrNull() 
             ?: backStacks[startRoute]?.lastOrNull()
 
-    val stacksInUse: List<NavKey>
+    val stacksInUse: List<AppDestination>
         get() = if (topLevelRoute == startRoute) {
             listOf(startRoute)
         } else {
@@ -65,48 +91,37 @@ class NavigationState(
         }
 
     fun resetToStart() {
-    // 1. 先切换路由标识，让 Compose 在下一次计算时知道我们要看 startRoute
-    topLevelRoute = startRoute
-    
-    // 2. 遍历堆栈进行清理
-    backStacks.forEach { (key, stack) ->
-        if (key == startRoute) {
-            // 针对首页堆栈：保留第一个（根）页面，移除之上的所有页面
-            while (stack.size > 1) {
-                stack.removeLastOrNull()
-            }
-        } else {
-            // 针对非首页堆栈：
-            // 不要直接 clear()！如果某些侧滑动画或过渡还在引用它，clear 会导致闪崩。
-            // 建议：如果它已经是空的就跳过，如果有内容，也保留至少一个，或者等它不可见后再清。
-            // 但为了简单且安全，我们可以让它至少保留一个。
-            if (stack.isNotEmpty()) {
+        // 1. 先切换路由标识
+        topLevelRoute = startRoute
+        
+        // 2. 遍历堆栈进行清理
+        backStacks.forEach { (key, stack) ->
+            if (key == startRoute) {
                 while (stack.size > 1) {
                     stack.removeLastOrNull()
                 }
-                // 注意：这里如果为了彻底释放内存，可以在确保 topLevelRoute 改变后，
-                // 延迟清空非活跃栈，或者接受保留一个根节点的开销。
+            } else {
+                if (stack.isNotEmpty()) {
+                    while (stack.size > 1) {
+                        stack.removeLastOrNull()
+                    }
+                }
             }
         }
     }
 }
-}
 
 /**
- * Convert NavigationState into NavEntries.
- */
-/**
- * 完全参考官方 Recipe 实现的 Entry 转换逻辑
- * 核心在于返回 SnapshotStateList 以保证 NavDisplay 的响应式更新
+ * 将 NavigationState 转换为 NavEntries，保持与官方 Recipe 一致的响应式更新逻辑
  */
 @Composable
 fun NavigationState.toEntries(
-    entryProvider: (NavKey) -> NavEntry<NavKey>
-): SnapshotStateList<NavEntry<NavKey>> {
+    entryProvider: (AppDestination) -> NavEntry<AppDestination>
+): SnapshotStateList<NavEntry<AppDestination>> {
 
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
         val decorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+            rememberSaveableStateHolderNavEntryDecorator<AppDestination>(),
         )
         rememberDecoratedNavEntries(
             backStack = stack,
@@ -115,8 +130,6 @@ fun NavigationState.toEntries(
         )
     }
 
-    // 重点：使用 getTopLevelRoutesInUse() 动态计算活跃堆栈
-    // 并通过 toMutableStateList() 返回 SnapshotStateList
     return remember(topLevelRoute, startRoute, decoratedEntries) {
         val routesInUse = if (topLevelRoute == startRoute) {
             listOf(startRoute)

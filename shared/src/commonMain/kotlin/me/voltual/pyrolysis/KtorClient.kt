@@ -12,7 +12,6 @@ package me.voltual.pyrolysis
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
@@ -54,7 +53,7 @@ object KtorClient {
     }
 
     // Ktor HttpClient 实例
-    val httpClient = HttpClient(OkHttp) {
+    val httpClient = HttpClient() {
         install(ContentNegotiation) {
             json(commonJson)
         }
@@ -75,13 +74,13 @@ object KtorClient {
     }
 
     // 上传专用客户端
-    val uploadHttpClient = HttpClient(OkHttp) {
+    val uploadHttpClient = HttpClient() {
         defaultRequest { url(UPLOAD_BASE_URL) }
         install(ContentNegotiation) { json(commonJson) }
     }
 
     // 挽悦云上传客户端
-    val wanyueyunUploadHttpClient = HttpClient(OkHttp) {
+    val wanyueyunUploadHttpClient = HttpClient() {
         defaultRequest { url(WANYUEYUN_UPLOAD_BASE_URL) }
         install(ContentNegotiation) { json(commonJson) }
     }

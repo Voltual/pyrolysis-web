@@ -37,7 +37,6 @@ import me.voltual.pyrolysis.data.DrawerMenuDataStore
 import org.koin.compose.koinInject 
 
 sealed class IconSource {
-    data class Resource(val resId: Int) : IconSource()
     data class Vector(val imageVector: ImageVector) : IconSource()
     data class Remote(val url: String) : IconSource()
 }
@@ -261,10 +260,6 @@ private fun ItemContent(
         icon = {
             val iconModifier = Modifier.size(24.dp)
             when (val source = item.icon) {
-                is IconSource.Resource -> {
-                    // 仅作为回退逻辑，当前列表已全部替换为 Vector
-                    Icon(androidx.compose.ui.res.painterResource(source.resId), null, modifier = iconModifier)
-                }
                 is IconSource.Vector -> Icon(source.imageVector, null, modifier = iconModifier)
                 is IconSource.Remote -> AsyncImage(
                     model = source.url,
