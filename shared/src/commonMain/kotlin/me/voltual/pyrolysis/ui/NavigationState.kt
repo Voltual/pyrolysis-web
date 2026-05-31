@@ -43,9 +43,8 @@ fun rememberNavigationState(
     topLevelRoutes: Set<AppDestination>
 ): NavigationState {
     
-    // 修复：rememberSaveable 的第一个参数是 inputs，我们将 startRoute 和 topLevelRoutes 传入
+    // 修复：明确使用带 init 参数的 rememberSaveable 签名，排除多平台库的参数歧义
     val topLevelRoute = rememberSaveable(
-        startRoute, topLevelRoutes,
         saver = remember(startRoute) {
             val polymorphicSerializer = AppDestination.serializer()
             Saver<MutableState<AppDestination>, String>(
@@ -56,12 +55,14 @@ fun rememberNavigationState(
                     mutableStateOf(NavigationJson.decodeFromString(polymorphicSerializer, jsonString)) 
                 }
             )
+        },
+        inputs = arrayOf(startRoute, topLevelRoutes), // 显式通过 inputs 数组传递依赖
+        init = {
+            mutableStateOf(startRoute)
         }
-    ) {
-        mutableStateOf(startRoute)
-    }
+    )
 
-    // 修复：因为官方 rememberNavBackStack 返回的是 NavBackStack<NavKey>，我们在这里显式转换为我们需要的具体泛型
+    // 针对 Navigation 3 内部返回的 NavBackStack<NavKey> 进行安全向下转型
     @Suppress("UNCHECKED_CAST")
     val backStacks = topLevelRoutes.associateWith { key -> 
         rememberNavBackStack(key) as NavBackStack<AppDestination>
@@ -124,12 +125,16 @@ fun NavigationState.toEntries(
 ): SnapshotStateList<NavEntry<AppDestination>> {
 
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
+        // 修复：官方自带的这个 Decorator 返回的是针对特定泛型的对象
+        // 我们将其强转为兼容基类 NavKey 的 Decorator 列表，以满足 rememberDecoratedNavEntries 的强类型契约
+        @Suppress("UNCHECKED_CAST")
         val decorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator<AppDestination>(),
-        )
+            rememberSaveableStateHolderNavEntryDecorator<AppDestination>()
+        ) as List<androidx.navigation3.runtime.NavEntryDecorator<NavKey>>
+        
         @Suppress("UNCHECKED_CAST")
         rememberDecoratedNavEntries(
-            backStack = stack as NavBackStack<NavKey>, // 适配官方的装饰器泛型契约
+            backStack = stack as NavBackStack<NavKey>, 
             entryDecorators = decorators,
             entryProvider = entryProvider as (NavKey) -> NavEntry<NavKey>
         ) as List<NavEntry<AppDestination>>
