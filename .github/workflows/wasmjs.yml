@@ -65,14 +65,14 @@ jobs:
 
       - name: Package WasmJS Outputs
         run: |
-          mkdir -p build-artifacts
+          mkdir -p "$GITHUB_WORKSPACE/build-artifacts"
           if [ -d "wasmjs/build/dist/wasmJs/productionExecutable" ]; then
             cd wasmjs/build/dist/wasmJs/productionExecutable
-            zip -r ../../../../build-artifacts/pyrolysis-wasm.zip .
+            zip -r "$GITHUB_WORKSPACE/build-artifacts/pyrolysis-wasm.zip" .
             cd -
           elif [ -d "wasmjs/build/dist/wasmJs/developmentExecutable" ]; then
             cd wasmjs/build/dist/wasmJs/developmentExecutable
-            zip -r ../../../../build-artifacts/pyrolysis-wasm.zip .
+            zip -r "$GITHUB_WORKSPACE/build-artifacts/pyrolysis-wasm.zip" .
             cd -
           else
             echo "Error: WasmJS distribution directory not found!"
