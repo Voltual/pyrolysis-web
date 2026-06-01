@@ -27,7 +27,7 @@ fun main() {
     }
 
     // 2. 将 Compose 渲染视口挂载到浏览器的 document.body 上
-    ComposeViewport(document.body!!) {
+    ComposeViewport("pyrolysisApp") {
         PyrolysisApp(
             platformEntryProvider = { key, navigator ->
                 // 如果 Web 端后续有专属的平台页面，可以在此处进行分支拦截与渲染
