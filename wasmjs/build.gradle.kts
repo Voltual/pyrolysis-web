@@ -31,8 +31,11 @@ kotlin {
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             
-            // Koin 依赖注入框架核心依赖（用于 main.kt 中的 startKoin）
+            // Koin 依赖注入框架核心依赖
             implementation(libs.koin.core)
+            
+            // 导航组件依赖（用于解析 NavKey 与 Navigator 符号）
+            implementation(libs.compose.navigation3)
             
             // 协程支持
             implementation(libs.kotlinx.coroutines.core)
