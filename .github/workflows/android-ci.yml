@@ -65,7 +65,7 @@ jobs:
 
       - name: Get version info
         id: version
-       shell: bash
+        shell: bash
         run: |
           echo "BUILD_VERSION=auto-build-$(date +%Y%m%d_%H%M%S)-${GITHUB_SHA:0:8}" >> $GITHUB_OUTPUT
           echo "TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_OUTPUT
