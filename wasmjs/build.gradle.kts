@@ -1,4 +1,4 @@
-// web/build.gradle.kts
+// wasmjs/build.gradle.kts
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {

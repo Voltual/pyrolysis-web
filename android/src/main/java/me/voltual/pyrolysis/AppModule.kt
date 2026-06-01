@@ -35,22 +35,6 @@ val androidAppModule = module {
         .build()
     }
 
-    single { get<FdroidDatabase>().antiFeatureDao() }
-    single { get<FdroidDatabase>().categoryDao() }
-    single { get<FdroidDatabase>().downloadStatsDao() }
-    single { get<FdroidDatabase>().downloadStatsFileDao() }
-    single { get<FdroidDatabase>().downloadedDao() }
-    single { get<FdroidDatabase>().exodusInfoDao() }
-    single { get<FdroidDatabase>().extrasDao() }
-    single { get<FdroidDatabase>().installTaskDao() }
-    single { get<FdroidDatabase>().installedDao() }
-    single { get<FdroidDatabase>().productDao() }
-    single { get<FdroidDatabase>().rbLogDao() }
-    single { get<FdroidDatabase>().releaseDao() }
-    single { get<FdroidDatabase>().repoCategoryDao() }
-    single { get<FdroidDatabase>().repositoryDao() }
-    single { get<FdroidDatabase>().trackerDao() }
-
     // =========================================================================
     // 2. Android 独有业务仓库层
     // =========================================================================
