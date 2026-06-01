@@ -21,15 +21,12 @@ kotlin {
     sourceSets {
         val commonMain by getting
         
-        // 在 Kotlin 默认层次结构中，webMain 是 js 和 wasmJs 的公共父级
-        val webMain by getting {
-            dependencies {
+        wasmJsMain.dependencies {
                 implementation(project(":shared"))
                 implementation(libs.compose.runtime)
                 implementation(libs.compose.ui)
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
-            }
         }
     }
 }

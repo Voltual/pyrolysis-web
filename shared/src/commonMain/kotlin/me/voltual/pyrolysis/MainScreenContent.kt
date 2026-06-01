@@ -46,7 +46,6 @@ import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 
 // 项目核心基础库、数据层与网络 (Core & Data)
-import me.voltual.pyrolysis.AppStoreType
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.UpdateInfo
 import me.voltual.pyrolysis.data.UpdateSettingsDataStore
