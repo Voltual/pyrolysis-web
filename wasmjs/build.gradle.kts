@@ -22,11 +22,20 @@ kotlin {
         val commonMain by getting
         
         wasmJsMain.dependencies {
-                implementation(project(":shared"))
-                implementation(libs.compose.runtime)
-                implementation(libs.compose.ui)
-                implementation(libs.compose.foundation)
-                implementation(libs.compose.material3)
+            // 依赖共享的 shared 核心业务模块
+            implementation(project(":shared"))
+            
+            // Compose Multiplatform Web 核心依赖
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            
+            // Koin 依赖注入框架核心依赖（用于 main.kt 中的 startKoin）
+            implementation(libs.koin.core)
+            
+            // 协程支持
+            implementation(libs.kotlinx.coroutines.core)
         }
     }
 }
