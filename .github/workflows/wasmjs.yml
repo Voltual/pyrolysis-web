@@ -86,6 +86,31 @@ jobs:
           path: build-artifacts/pyrolysis-wasm.zip
           retention-days: 7
 
+      - name: Get version info
+        id: version
+        shell: bash
+        run: |
+          echo "BUILD_VERSION=auto-build-$(date +%Y%m%d_%H%M%S)-${GITHUB_SHA:0:8}" >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")" >> $GITHUB_OUTPUT
+
+      - name: Create Draft Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.BUILD_VERSION }}
+          name: "Auto Build ${{ steps.version.outputs.BUILD_VERSION }}"
+          body: |
+            ### 构建信息
+            - 提交: `${{ github.sha }}`
+            - 构建时间: `${{ steps.version.outputs.TIMESTAMP }}`
+            
+            **注意**: 这是一个自动生成的 WasmJS 生产/开发环境分发包。
+          draft: true
+          files: |
+            build-artifacts/pyrolysis-wasm.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Save Gradle cache
         if: ${{ success() }}
         uses: actions/cache@v3

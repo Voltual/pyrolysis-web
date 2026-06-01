@@ -23,6 +23,18 @@ allprojects {
     rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin> {
         project.the<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec>().download = false
     }
+    
+    configurations.all {
+        resolutionStrategy {
+            eachDependency {
+                // 如果发现有第三方库（比如 Coil）偷偷引进了旧版 skiko
+                if (requested.group == "org.jetbrains.skiko") {
+                    // 强行把它转为框架目前正在使用的稳定版
+                    useVersion("0.148.1")
+                }
+            }
+        }
+    }
 }
 tasks.named<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
