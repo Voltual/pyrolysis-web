@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import me.voltual.pyrolysis.di.*
 import me.voltual.pyrolysis.core.database.*
 import me.voltual.pyrolysis.*
 import me.voltual.pyrolysis.core.ui.theme.ThemeColorDataStore

@@ -1,57 +1,35 @@
 //Copyright (C) 2025 Voltual
 // 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+
 package me.voltual.pyrolysis
 
 import android.content.Context
 import android.content.Intent
 import android.app.ActivityOptions
-import androidx.compose.ui.focus.FocusManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import me.voltual.pyrolysis.data.UpdateInfo
-import me.voltual.pyrolysis.data.UpdateSettingsDataStore
+import me.voltual.pyrolysis.data.UserAgreementDataStore
 import me.voltual.pyrolysis.core.database.LogEntry
 import me.voltual.pyrolysis.core.database.LogDao
-import me.voltual.pyrolysis.data.UserAgreementDataStore
 import me.voltual.pyrolysis.ui.*
-import me.voltual.pyrolysis.core.ui.components.UserAgreementDialog
-import me.voltual.pyrolysis.core.ui.theme.*
-import me.voltual.pyrolysis.core.utils.UpdateCheckResult
-import me.voltual.pyrolysis.core.ui.components.UpdateDialog
-import me.voltual.pyrolysis.core.utils.UpdateChecker
+
+// 导入 Android 专属界面，并使用别名避免与 NavKey 命名冲突
+import me.voltual.pyrolysis.ui.plaza.AppPage as AppPageScreen
+import me.voltual.pyrolysis.ui.plaza.ExplorePage
+import me.voltual.pyrolysis.ui.plaza.SearchPage as SearchPageScreen
+import me.voltual.pyrolysis.ui.plaza.SortFilterSheet as SortFilterSheetScreen
+import me.voltual.pyrolysis.ui.settings.repos.PrefsReposPage as PrefsReposPageScreen
+import me.voltual.pyrolysis.ui.settings.storage.StoreManagerScreen
+
 import org.koin.android.ext.android.inject
-import org.koin.compose.koinInject
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     private val agreementDataStore: UserAgreementDataStore by inject()
@@ -66,15 +44,41 @@ class MainActivity : AppCompatActivity() {
     }
     
     fun launchLockPrompt(action: () -> Unit) {
-    // TODO: 待重新实现生物识别逻辑
-}
+        // TODO: 待重新实现生物识别逻辑
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_BBQ_Main)
         super.onCreate(savedInstanceState)
 
         setContent {
-            PyrolysisApp(agreementDataStore = agreementDataStore)
+            // 调用共享的 PyrolysisApp，并注入 Android 专属界面的渲染逻辑
+            PyrolysisApp(
+                agreementDataStore = agreementDataStore,
+                platformEntryProvider = { key, navigator ->
+                    when (key) {
+                        is PrefsReposPage -> {
+                            { PrefsReposPageScreen() }
+                        }
+                        is StoreManager -> {
+                            { StoreManagerScreen() }
+                        }
+                        is AppPage -> {
+                            { AppPageScreen(packageName = key.packageName, onDismiss = { navigator.goBack() }) }
+                        }
+                        is SearchPage -> {
+                            { SearchPageScreen(onDismiss = { navigator.goBack() }) }
+                        }
+                        is Explore -> {
+                            { ExplorePage() }
+                        }
+                        is SortFilterSheet -> {
+                            { SortFilterSheetScreen(onDismiss = { navigator.goBack() }) }
+                        }
+                        else -> null
+                    }
+                }
+            )
         }
 
         lifecycleScope.launch {
@@ -122,7 +126,6 @@ class MainActivity : AppCompatActivity() {
             $stackTrace
         """.trimIndent()
     }
-
 }
 
 fun startHeartbeatService(context: Context, token: String) {

@@ -1,24 +1,17 @@
 //Copyright (C) 2025 Voltual
 // 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+
 package me.voltual.pyrolysis
 
-// Androidx & Jetpack Compose 核心基础与布局
+// Jetpack Compose 核心基础与布局
 import androidx.compose.foundation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 // Jetpack Material 3 设计组件与图标
@@ -34,17 +27,12 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 
 // Jetpack Lifecycle & ViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 
-// Jetpack Navigation 3 (包含 ViewModel 装饰器)
+// Jetpack Navigation 3
 import androidx.navigation3.runtime.*
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.scene.DialogSceneStrategy
-import androidx.navigation3.ui.NavDisplay
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 
 // Kotlin 协程与流
 import kotlinx.coroutines.CoroutineScope
@@ -54,14 +42,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// Koin 依赖注入 (Android, Compose & ViewModel)
+// Koin 依赖注入
 import org.koin.compose.koinInject
-import org.koin.androidx.compose.koinViewModel
 
-// ----------------------------------------------------
 // 项目核心基础库、数据层与网络 (Core & Data)
-// ----------------------------------------------------
-import me.voltual.pyrolysis.AppStore
+import me.voltual.pyrolysis.AppStoreType
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.UpdateInfo
 import me.voltual.pyrolysis.data.UpdateSettingsDataStore
@@ -78,75 +63,35 @@ import me.voltual.pyrolysis.core.ui.components.UserAgreementDialog
 import me.voltual.pyrolysis.core.ui.components.UpdateDialog
 import me.voltual.pyrolysis.core.ui.animation.*
 
-// ----------------------------------------------------
 // 项目业务 UI 界面 (Feature Screens)
-// ----------------------------------------------------
 import me.voltual.pyrolysis.ui.*
-
-// 认证 (Auth)
 import me.voltual.pyrolysis.ui.auth.LoginScreen
-import me.voltual.pyrolysis.ui.auth.LoginViewModel
-
-// 社区 (Community)
 import me.voltual.pyrolysis.ui.community.*
 import me.voltual.pyrolysis.ui.community.compose.PostDetailScreen
-
-// 主页与排行 (Home & Rank)
 import me.voltual.pyrolysis.ui.home.*
 import me.voltual.pyrolysis.ui.rank.RankingListScreen
-
-// 搜索 (Search)
 import me.voltual.pyrolysis.ui.search.SearchScreen
-import me.voltual.pyrolysis.ui.search.SearchViewModel
-
-// 广场、应用详情与发现 (Plaza & App)
 import me.voltual.pyrolysis.ui.plaza.ResourcePlazaScreen
-import me.voltual.pyrolysis.ui.plaza.AppPage
-import me.voltual.pyrolysis.ui.plaza.SearchPage
-import me.voltual.pyrolysis.ui.plaza.ExplorePage
-import me.voltual.pyrolysis.ui.plaza.SortFilterSheet
 import me.voltual.pyrolysis.ui.plaza.AppDetailScreen
 import me.voltual.pyrolysis.ui.plaza.AppReleaseScreen
-import me.voltual.pyrolysis.ui.plaza.AppReleaseViewModel
-
-// 播放器 (Player)
 import me.voltual.pyrolysis.ui.player.PlayerScreen
-import me.voltual.pyrolysis.ui.player.PlayerViewModel
-
-// 用户中心 (User)
 import me.voltual.pyrolysis.ui.user.*
 import me.voltual.pyrolysis.ui.user.compose.UserListScreen
-
-// 消息与通知 (Message)
 import me.voltual.pyrolysis.ui.message.MessageCenterScreen
-import me.voltual.pyrolysis.ui.message.MessageViewModel
-
-// 支付与账单 (Payment & Billing)
 import me.voltual.pyrolysis.ui.payment.PaymentCenterScreen
-import me.voltual.pyrolysis.ui.payment.PaymentType
-import me.voltual.pyrolysis.ui.payment.PaymentViewModel
 import me.voltual.pyrolysis.ui.billing.BillingScreen
-import me.voltual.pyrolysis.ui.billing.BillingViewModel
-
-// 日志 (Log)
 import me.voltual.pyrolysis.ui.log.LogScreen
-import me.voltual.pyrolysis.ui.log.LogViewModel
-
-// 设置中心 (Settings)
-import me.voltual.pyrolysis.ui.settings.repos.PrefsReposPage
-import me.voltual.pyrolysis.ui.settings.storage.StoreManagerScreen
-import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsScreen
 import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsScreen
-import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsViewModel
+import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsScreen
 
 val topLevelRoutes: Set<NavKey> = setOf(Home)
 
 @Composable
 fun PyrolysisApp(
     agreementDataStore: UserAgreementDataStore = koinInject(), 
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    platformEntryProvider: @Composable (NavKey, Navigator) -> (@Composable () -> Unit)? = { _, _ -> null }
 ) {
-    // 1. 初始化全局导航相关状态
     val navigationState = rememberNavigationState(
         startRoute = Home,
         topLevelRoutes = topLevelRoutes
@@ -157,7 +102,6 @@ fun PyrolysisApp(
         Navigator(navigationState, focusManager, topAppBarController)
     }
 
-    // 2. 提供全局的 CompositionLocal 注入
     CompositionLocalProvider(
         LocalNavigator provides navigator,
         LocalNavigationState provides navigationState,
@@ -165,7 +109,6 @@ fun PyrolysisApp(
     ) {
         val snackbarHostState = remember { SnackbarHostState() }
 
-        // 3. 处理用户协议与隐私政策状态
         val userAccepted by agreementDataStore.isUserAgreementAccepted.collectAsState(initial = true)
         val xiaoquAccepted by agreementDataStore.isXiaoquAccepted.collectAsState(initial = true)
 
@@ -177,13 +120,13 @@ fun PyrolysisApp(
 
         val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
 
-        // 4. 应用全局主题
         BBQTheme(appDarkTheme = ThemeManager.isAppDarkTheme) {
             MainScreenContent(
                 navigationState = navigationState,
                 navigator = navigator,
                 snackbarHostState = snackbarHostState,
-                showAgreementDialog = showAgreementDialog
+                showAgreementDialog = showAgreementDialog,
+                platformEntryProvider = platformEntryProvider
             )
         }
     }
@@ -195,7 +138,8 @@ fun MainScreenContent(
     navigationState: NavigationState,
     navigator: Navigator,
     snackbarHostState: SnackbarHostState,
-    showAgreementDialog: Boolean
+    showAgreementDialog: Boolean,
+    platformEntryProvider: @Composable (NavKey, Navigator) -> (@Composable () -> Unit)?
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -282,7 +226,7 @@ fun MainScreenContent(
                                 IconButton(onClick = { navigator.goBack() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = stringResource(R.string.back),
+                                        contentDescription = "返回", // 彻底移除 Android R 依赖
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -290,7 +234,7 @@ fun MainScreenContent(
                                 IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                     Icon(
                                         imageVector = Icons.Default.Menu,
-                                        contentDescription = stringResource(R.string.open_drawer),
+                                        contentDescription = "打开菜单", // 彻底移除 Android R 依赖
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -346,27 +290,8 @@ fun MainScreenContent(
                         snackbarHostState = snackbarHostState,
                         modifier = Modifier.fillMaxSize(),
                         platformEntryProvider = { key ->
-                            when (key) {
-                                is PrefsReposPage -> {
-                                    { PrefsReposPage() }
-                                }
-                                is StoreManager -> {
-                                    { StoreManagerScreen() }
-                                }
-                                is AppPage -> {
-                                    { AppPage(packageName = key.packageName, onDismiss = { navigator.goBack() }) }
-                                }
-                                is SearchPage -> {
-                                    { SearchPage(onDismiss = { navigator.goBack() }) }
-                                }
-                                is Explore -> {
-                                    { ExplorePage() }
-                                }
-                                is SortFilterSheet -> {
-                                    { SortFilterSheet(onDismiss = { navigator.goBack() }) }
-                                }
-                                else -> null
-                            }
+                            // 优先调用外部平台注入的页面提供器
+                            platformEntryProvider(key, navigator)
                         }
                     )
 
@@ -482,7 +407,6 @@ fun CheckForUpdates(snackbarHostState: SnackbarHostState) {
     }
 }
 
-
 private fun tryAutoLogin(
     username: String,
     password: String,
@@ -490,7 +414,8 @@ private fun tryAutoLogin(
     navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
-    CoroutineScope(Dispatchers.IO).launch {
+    // 适配 KMP 协程，在 Default 调度器启动，并在需要时切换
+    CoroutineScope(Dispatchers.Default).launch {
         try {
             val deviceId = authRepository.deviceId.first()
             val result = KtorClient.ApiServiceImpl.login(

@@ -6,6 +6,7 @@ package me.voltual.pyrolysis
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import me.voltual.pyrolysis.core.database.FdroidDatabase
+import me.voltual.pyrolysis.core.database.dao.*
 import me.voltual.pyrolysis.feature.store.repository.*
 import me.voltual.pyrolysis.ui.payment.PaymentViewModel
 import me.voltual.pyrolysis.ui.plaza.AppPageVM
@@ -34,7 +35,6 @@ val androidAppModule = module {
         .build()
     }
 
-    // Android 独有 Daos 自动从 FdroidDatabase 提取注入
     single { get<FdroidDatabase>().antiFeatureDao() }
     single { get<FdroidDatabase>().categoryDao() }
     single { get<FdroidDatabase>().downloadStatsDao() }
