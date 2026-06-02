@@ -66,13 +66,13 @@ fun main() {
                 ) {
                     // 动态改变文字的 Text 组件（此时已应用加载好的字体环境）
                     Text(
-                        text = "当前按钮点击次数: $count",
+                        text = "counts: $count",
 
                     )
                     
                     // Material 3 按钮
                     Button(onClick = { count++ }) {
-                        Text("点我改变文字")
+                        Text("Click me")
                     }
                 }
             }
