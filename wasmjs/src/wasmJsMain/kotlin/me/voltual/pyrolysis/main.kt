@@ -7,7 +7,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.Font
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +24,7 @@ import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 import me.voltual.pyrolysis.di.commonModule
 import me.voltual.pyrolysis.di.platformModule
-import me.voltual.pyrolysis.core.ui.theme.wasmThemeFontFamily // 导入全局变量
+import me.voltual.pyrolysis.core.ui.theme.wasmThemeFontFamily
 import org.koin.core.context.startKoin
 
 private const val FONT_URL = "./unifont.otf"
@@ -59,12 +58,15 @@ fun main() {
         LaunchedEffect(Unit) {
             try {
                 val fontBytes = loadFontBytes(FONT_URL)
-                val fontFamily = FontFamily(listOf(Font(identity = "Unifont", data = fontBytes)))
+                // 修复：使用完全限定名且采用位置参数，彻底规避平台符号冲突
+                val fontFamily = FontFamily(
+                    listOf(
+                        androidx.compose.ui.text.font.Font("Unifont", fontBytes)
+                    )
+                )
                 fontFamilyResolver.preload(fontFamily)
                 
-                // 关键点：直接将预加载好的 FontFamily 赋值给全局变量
                 wasmThemeFontFamily = fontFamily
-                
                 fontsLoaded.value = true
             } catch (e: Exception) {
                 fontsLoaded.value = true
@@ -76,7 +78,8 @@ fun main() {
 private suspend fun loadFontBytes(url: String): ByteArray {
     val response = window.fetch(url).await<Response>()
     if (!response.ok) {
-        throw okio.IOException("无法获取字体文件: status = ${response.status}")
+        // 修复：使用标准 Exception 抛出，避免引用未依赖的 okio 库
+        throw Exception("无法获取字体文件: status = ${response.status}")
     }
     val arrayBuffer = response.arrayBuffer().await<ArrayBuffer>()
     return arrayBuffer.toByteArray()
