@@ -16,7 +16,7 @@ import androidx.compose.runtime.*
 import kotlinx.browser.document
 import me.voltual.pyrolysis.di.commonModule
 import me.voltual.pyrolysis.di.platformModule
-import me.voltual.pyrolysis.core.ui.theme.sharedThemeFontFamily // 导入 commonMain 的共享变量
+import me.voltual.pyrolysis.core.ui.theme.sharedThemeFontFamily
 import me.voltual.pyrolysis.Res
 import me.voltual.pyrolysis.unifont
 import org.koin.core.context.startKoin
@@ -31,7 +31,21 @@ fun main() {
     }
 
     ComposeViewport(document.body!!) {
+        // 1. 直接在 Composable 上下文中安全地加载字体资源
+        val font = org.jetbrains.compose.resources.Font(
+            resource = Res.font.unifont,
+            weight = FontWeight.Normal
+        )
+        
+        // 2. 记住并构建 FontFamily
+        val fontFamily = remember(font) { FontFamily(font) }
         val fontsLoaded = remember { mutableStateOf(false) }
+
+        // 3. 在 LaunchedEffect 中仅执行纯 Kotlin 状态赋值，完美避开编译器限制
+        LaunchedEffect(fontFamily) {
+            sharedThemeFontFamily = fontFamily
+            fontsLoaded.value = true
+        }
 
         if (fontsLoaded.value) {
             PyrolysisApp(
@@ -43,21 +57,6 @@ fun main() {
                 contentAlignment = Alignment.Center
             ) {
                 Text("正在加载系统核心字体...")
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            try {
-                // 异步加载字体
-                val font = org.jetbrains.compose.resources.Font(
-                    resource = Res.font.unifont,
-                    weight = FontWeight.Normal
-                )
-                // 赋值给 commonMain 共享变量
-                sharedThemeFontFamily = FontFamily(font)
-                fontsLoaded.value = true
-            } catch (e: Exception) {
-                fontsLoaded.value = true
             }
         }
     }
