@@ -44,10 +44,10 @@ fun main() {
         }
 
         if (unifont != null) {
-/*            PyrolysisApp(
+            PyrolysisApp(
                 platformEntryProvider = { _, _ -> null }
-            )*/
-            WasmDebugWidget()
+            )
+//            WasmDebugWidget()
         } else {
             Box(
                 modifier = Modifier.fillMaxSize(),
