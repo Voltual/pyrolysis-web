@@ -191,8 +191,8 @@ fun MainScreenContent(
                     DrawerHeader(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)//,
-//                        backgroundUri = drawerHeaderBackgroundUri
+                            .height(180.dp),
+                        backgroundUri = null//drawerHeaderBackgroundUri
                     )
                     NavigationDrawerItems(
                         navigator = navigator,
