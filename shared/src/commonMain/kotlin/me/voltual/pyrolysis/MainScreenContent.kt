@@ -108,7 +108,7 @@ fun PyrolysisApp(
     ) {
         val snackbarHostState = remember { SnackbarHostState() }
 
-        val userAccepted by agreementDataStore.isUserAgreementAccepted.collectAsState(initial = true)
+/*        val userAccepted by agreementDataStore.isUserAgreementAccepted.collectAsState(initial = true)
         val xiaoquAccepted by agreementDataStore.isXiaoquAccepted.collectAsState(initial = true)
 
         var isAgreementDataLoaded by remember { mutableStateOf(false) }
@@ -117,7 +117,7 @@ fun PyrolysisApp(
             isAgreementDataLoaded = true
         }
 
-   //     val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
+        val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)*/
    // 强行改成 false，直接不渲染弹窗
 val showAgreementDialog = false // isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
 
@@ -163,7 +163,7 @@ fun MainScreenContent(
     val darkBgUri by themeStore.drawerHeaderDarkBackgroundUriFlow.collectAsState(initial = null)
     val drawerHeaderBackgroundUri = if (useDarkTheme) darkBgUri else lightBgUri
 
-    val isLoggedIn = remember { mutableStateOf(false) }
+/*    val isLoggedIn = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         val credentials = authRepository.credentials.first()
         isLoggedIn.value = credentials.userId != 0L
@@ -176,7 +176,7 @@ fun MainScreenContent(
                 snackbarHostState = snackbarHostState
             )
         }
-    }
+    }*/
 
     ModalNavigationDrawer(
         drawerState = drawerState,
