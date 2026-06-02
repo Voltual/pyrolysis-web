@@ -302,7 +302,7 @@ fun MainScreenContent(
                         )
                     }
 
-                    CheckForUpdates(snackbarHostState)
+//                    CheckForUpdates(snackbarHostState)
                     WasmDebugWidget(
     )
                 }
