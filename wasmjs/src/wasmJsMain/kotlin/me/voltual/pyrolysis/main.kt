@@ -45,7 +45,7 @@ fun main() {
         val fontsLoaded = remember { mutableStateOf(false) }
 
         // 3. 在 LaunchedEffect 中仅执行纯 Kotlin 状态赋值，完美避开编译器限制
-        LaunchedEffect() {
+        LaunchedEffect(Unit) {
             sharedThemeFontFamily = fontFamily
             fontsLoaded.value = true
         }
