@@ -61,10 +61,14 @@ fun main() {
                 val fontBytes = loadFontBytes(FONT_URL)
                 // 修复：直接调用顶级函数，编译器将完美匹配 Font(String, ByteArray) 签名
                 val fontFamily = FontFamily(
-                    listOf(
-                        Font("Unifont", fontBytes)
-                    )
-                )
+    listOf(
+        Font(
+            identity = "Unifont",
+            data = fontBytes
+            // 如果编译器仍报错，尝试查看这里的 data 到底需要 ByteArray 还是其他类型
+        )
+    )
+)
                 fontFamilyResolver.preload(fontFamily)
                 
                 wasmThemeFontFamily = fontFamily
