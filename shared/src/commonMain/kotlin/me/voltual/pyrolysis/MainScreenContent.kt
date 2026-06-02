@@ -499,7 +499,6 @@ fun WasmDebugWidget() {
 
     // 用最基础的 Surface 包裹，确保可见性
     Surface(
-        modifier = modifier.padding(16.dp),
         color = Color(0xFF222222),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
         shadowElevation = 8.dp
