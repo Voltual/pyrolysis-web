@@ -14,6 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+// 导入 Compose 官方资源字体加载器
+import org.jetbrains.compose.resources.Font
+import me.voltual.pyrolysis.Res
+import me.voltual.pyrolysis.unifont
+
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
@@ -249,10 +254,15 @@ fun BBQTheme(
     } else {
         customColors?.lightSet?.toLightColorScheme() ?: lightScheme
     }
+
+    // 100% 纯净的 KMP 资源加载，无需任何 expect/actual
+    val unifontFamily = FontFamily(
+        Font(resource = Res.font.unifont)
+    )
         
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = getAppTypography(getThemeFontFamily()), // 动态注入平台匹配的字体
+        typography = getAppTypography(unifontFamily),
         content = content
     )
 }

@@ -5,27 +5,25 @@ package me.voltual.pyrolysis
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button       // 引入 Material 3 按钮
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column    // 引入垂直布局
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.*
 import kotlinx.browser.document
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.preloadFont
 import me.voltual.pyrolysis.di.commonModule
 import me.voltual.pyrolysis.di.platformModule
-import me.voltual.pyrolysis.core.ui.theme.sharedThemeFontFamily
 import me.voltual.pyrolysis.Res
 import me.voltual.pyrolysis.unifont
 import org.koin.core.context.startKoin
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    // 恢复 Koin 初始化
     startKoin {
         modules(
             commonModule,
@@ -34,51 +32,24 @@ fun main() {
     }
 
     ComposeViewport(document.body!!) {
-        // 1. 直接在 Composable 上下文中安全地加载字体资源
-        val font = org.jetbrains.compose.resources.Font(
-            resource = Res.font.unifont,
-            weight = FontWeight.Normal
-        )
+        // 1. 使用官方标准 API 预加载 Unifont 字体
+        @OptIn(ExperimentalResourceApi::class)
+        val unifont = preloadFont(Res.font.unifont).value
         
-        // 2. 记住并构建 FontFamily
-        val fontFamily = remember(font) { FontFamily(font) }
-        val fontsLoaded = remember { mutableStateOf(false) }
-
-        // 3. 在 LaunchedEffect 中仅执行纯 Kotlin 状态赋值，完美避开编译器限制
-        LaunchedEffect(Unit) {
-            sharedThemeFontFamily = fontFamily
-            fontsLoaded.value = true
+        val fontFamilyResolver = LocalFontFamilyResolver.current
+        
+        // 2. 预加载完成后，将其注入到全局字体解析器中
+        LaunchedEffect(fontFamilyResolver, unifont) {
+            if (unifont != null) {
+                fontFamilyResolver.preload(FontFamily(listOf(unifont)))
+            }
         }
 
-        // 判断字体是否加载完成
-        if (fontsLoaded.value) {
-            // --- 将原 PyrolysisApp 替换为 Material 3 测试组件 ---
-            
-            // 用于测试 Material 3 组件的状态
-            var count by remember { mutableStateOf(0) }
-
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 动态改变文字的 Text 组件（此时已应用加载好的字体环境）
-                    Text(
-                        text = "counts: $count",
-
-                    )
-                    
-                    // Material 3 按钮
-                    Button(onClick = { count++ }) {
-                        Text("Click me")
-                    }
-                    Text("我不好🙃")
-                }
-            }
-            
-            // --------------------------------------------------
+        // 3. 仅在字体加载完成后再初始化应用，完美规避豆腐块与白屏闪烁
+        if (unifont != null) {
+            PyrolysisApp(
+                platformEntryProvider = { _, _ -> null }
+            )
         } else {
             Box(
                 modifier = Modifier.fillMaxSize(),
