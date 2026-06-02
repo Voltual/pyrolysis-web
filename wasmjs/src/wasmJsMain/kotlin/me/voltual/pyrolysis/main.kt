@@ -25,14 +25,13 @@ import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 import me.voltual.pyrolysis.di.commonModule
 import me.voltual.pyrolysis.di.platformModule
+import me.voltual.pyrolysis.core.ui.theme.wasmThemeFontFamily // 导入全局变量
 import org.koin.core.context.startKoin
 
-// 字体文件路径（需要放置在 wasmjs/src/wasmJsMain/resources/unifont.otf 目录中）
 private const val FONT_URL = "./unifont.otf"
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    // 1. 初始化 Koin 依赖注入
     startKoin {
         modules(
             commonModule,
@@ -40,18 +39,15 @@ fun main() {
         )
     }
 
-    // 2. 挂载 ComposeViewport
     ComposeViewport(document.body!!) {
         val fontFamilyResolver = LocalFontFamilyResolver.current
         val fontsLoaded = remember { mutableStateOf(false) }
 
         if (fontsLoaded.value) {
-            // 字体加载完成后，启动真正的应用程序
             PyrolysisApp(
                 platformEntryProvider = { _, _ -> null }
             )
         } else {
-            // 字体加载前，显示极简的优雅 Loading 界面
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -60,24 +56,23 @@ fun main() {
             }
         }
 
-        // 3. 异步拉取并预加载字体
         LaunchedEffect(Unit) {
             try {
                 val fontBytes = loadFontBytes(FONT_URL)
                 val fontFamily = FontFamily(listOf(Font(identity = "Unifont", data = fontBytes)))
                 fontFamilyResolver.preload(fontFamily)
+                
+                // 关键点：直接将预加载好的 FontFamily 赋值给全局变量
+                wasmThemeFontFamily = fontFamily
+                
                 fontsLoaded.value = true
             } catch (e: Exception) {
-                // 容错处理：若加载失败则直接进入，防止白屏
                 fontsLoaded.value = true
             }
         }
     }
 }
 
-/**
- * 异步 Fetch 网络字体文件并转换为 Kotlin ByteArray。
- */
 private suspend fun loadFontBytes(url: String): ByteArray {
     val response = window.fetch(url).await<Response>()
     if (!response.ok) {
@@ -87,9 +82,6 @@ private suspend fun loadFontBytes(url: String): ByteArray {
     return arrayBuffer.toByteArray()
 }
 
-/**
- * 将 JavaScript 的 ArrayBuffer 高效转换为 Kotlin ByteArray。
- */
 private fun ArrayBuffer.toByteArray(): ByteArray {
     val source = Int8Array(this, 0, byteLength)
     val size = source.length
@@ -103,9 +95,6 @@ private fun ArrayBuffer.toByteArray(): ByteArray {
     }
 }
 
-/**
- * 利用 WebAssembly 内存段直接复制 JS 字节数据，避免高开销的循环遍历。
- */
 @JsFun(
     """(src, size, dstAddr) => {
         const mem8 = new Int8Array(wasmExports.memory.buffer, dstAddr, size);
