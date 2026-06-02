@@ -1,5 +1,5 @@
 //Copyright (C) 2025 Voltual
-// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
+// 本程序 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License...
 
 package me.voltual.pyrolysis
 
@@ -7,6 +7,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font // 显式导入顶级函数
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -58,10 +59,10 @@ fun main() {
         LaunchedEffect(Unit) {
             try {
                 val fontBytes = loadFontBytes(FONT_URL)
-                // 修复：使用完全限定名且采用位置参数，彻底规避平台符号冲突
+                // 修复：直接调用顶级函数，编译器将完美匹配 Font(String, ByteArray) 签名
                 val fontFamily = FontFamily(
                     listOf(
-                        androidx.compose.ui.text.font.Font("Unifont", fontBytes)
+                        Font("Unifont", fontBytes)
                     )
                 )
                 fontFamilyResolver.preload(fontFamily)
@@ -78,7 +79,6 @@ fun main() {
 private suspend fun loadFontBytes(url: String): ByteArray {
     val response = window.fetch(url).await<Response>()
     if (!response.ok) {
-        // 修复：使用标准 Exception 抛出，避免引用未依赖的 okio 库
         throw Exception("无法获取字体文件: status = ${response.status}")
     }
     val arrayBuffer = response.arrayBuffer().await<ArrayBuffer>()
