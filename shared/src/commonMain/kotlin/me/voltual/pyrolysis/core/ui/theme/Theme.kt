@@ -1,13 +1,8 @@
 //Copyright (C) 2025 Voltual
 // 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>。
+
 package me.voltual.pyrolysis.core.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -18,11 +13,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-
-// 导入 Compose Multiplatform 资源加载组件
-import org.jetbrains.compose.resources.Font
-import me.voltual.pyrolysis.Res
-import me.voltual.pyrolysis.unifont
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -100,7 +90,6 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-// 修改：使用应用主题设置而不是系统主题
 val MaterialTheme.messageLikeBg: Color
     @Composable get() {
         val customColors = ThemeManager.customColorSet
@@ -151,10 +140,6 @@ val MaterialTheme.billingExpense: Color
         }
     }
 
-/**
- * 动态构建包含自定义字体的 Typography。
- * 将 Unifont 字体应用到所有的排版样式中，彻底解决 Web 端的中文乱码问题。
- */
 @Composable
 fun getAppTypography(fontFamily: FontFamily): Typography {
     return Typography(
@@ -259,26 +244,19 @@ fun BBQTheme(
 ) {   
     val customColors = ThemeManager.customColorSet
     
-    // 创建颜色方案 (优先使用自定义颜色)
     val colorScheme = if (appDarkTheme) {
         customColors?.darkSet?.toDarkColorScheme() ?: darkScheme
     } else {
         customColors?.lightSet?.toLightColorScheme() ?: lightScheme
     }
-
-    // 动态加载 Unifont 字体资源
-    val unifontFamily = FontFamily(
-        Font(resource = Res.font.unifont)
-    )
         
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = getAppTypography(unifontFamily), // 注入应用了 Unifont 的排版
+        typography = getAppTypography(getThemeFontFamily()), // 动态注入平台匹配的字体
         content = content
     )
 }
 
-// 两个独立的转换函数
 private fun ColorSet.toLightColorScheme() = lightColorScheme(
     primary = primary,
     onPrimary = onPrimary,
@@ -299,7 +277,6 @@ private fun ColorSet.toLightColorScheme() = lightColorScheme(
     onBackground = onBackground
 )
 
-// 暗色主题转换函数
 private fun ColorSet.toDarkColorScheme() = darkColorScheme(
     primary = primary,
     onPrimary = onPrimary,

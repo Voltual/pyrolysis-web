@@ -45,8 +45,8 @@ fun UserAgreementDialog(
     // 1. 使用基于纯字符串路径的 KMP 资源项声明
     val agreements = remember {
         listOf(
-            AgreementItem("《本项目 用户协议》", "files/useragreement.md"),
-            AgreementItem("《小趣空间用户协议》", "files/xiaoquuseragreement.md"),
+            AgreementItem("《本项目 用户协议》", "files/useragreement.txt"),
+            AgreementItem("《小趣空间用户协议》", "files/xiaoquuseragreement.txt"),
         )
     }
 
