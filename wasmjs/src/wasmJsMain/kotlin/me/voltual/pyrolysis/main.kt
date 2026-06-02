@@ -25,27 +25,24 @@ import org.koin.core.context.startKoin
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     startKoin {
-        modules(
-            commonModule,
-            platformModule
-        )
+        modules(commonModule, platformModule)
     }
 
-    ComposeViewport(document.body!!) {
-        // 1. 使用官方标准 API 预加载 Unifont 字体
+    // 正确获取 index.html 中定义的专用容器 div
+    val composeRoot = document.getElementById("ComposeApp")!!
+
+    // 将专用容器作为宿主传入，这样底层坐标计算才会百分之百精准
+    ComposeViewport(composeRoot) {
         @OptIn(ExperimentalResourceApi::class)
         val unifont = preloadFont(Res.font.unifont).value
-        
         val fontFamilyResolver = LocalFontFamilyResolver.current
         
-        // 2. 预加载完成后，将其注入到全局字体解析器中
         LaunchedEffect(fontFamilyResolver, unifont) {
             if (unifont != null) {
                 fontFamilyResolver.preload(FontFamily(listOf(unifont)))
             }
         }
 
-        // 3. 仅在字体加载完成后再初始化应用，完美规避豆腐块与白屏闪烁
         if (unifont != null) {
             PyrolysisApp(
                 platformEntryProvider = { _, _ -> null }
@@ -55,6 +52,7 @@ fun main() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
+                // 这里加个本地文本样式，避免字体没加载出来时无法显示
                 Text("正在加载系统核心字体...")
             }
         }
