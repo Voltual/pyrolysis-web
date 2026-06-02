@@ -82,6 +82,10 @@ import me.voltual.pyrolysis.ui.billing.BillingScreen
 import me.voltual.pyrolysis.ui.log.LogScreen
 import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsScreen
 import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsScreen
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
 
 val topLevelRoutes: Set<NavKey> = setOf(Home)
 
@@ -303,6 +307,12 @@ fun MainScreenContent(
                     }
 
                     CheckForUpdates(snackbarHostState)
+                    WasmDebugClock(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd) // 居于右下角悬浮
+                            .padding(16.dp)
+                            .zIndex(999f) // 确保在最顶层，不被页面组件遮挡
+                    )
                 }
             }
         )
@@ -474,6 +484,64 @@ private fun tryAutoLogin(
                 snackbarHostState.showSnackbar("登录异常: ${e.message}")
                 navigator.navigate(Login)
             }
+        }
+    }
+}
+
+@Composable
+fun WasmDebugClock(modifier: Modifier = Modifier) {
+    // 自动刷新时间戳
+    var currentTimeString by remember { mutableStateOf("00:00:00.000") }
+    // 交互状态：点击时改变颜色
+    var clickCount by remember { mutableStateOf(0) }
+    val colors = listOf(Color.Red, Color.Green, Color.Blue, Color.Magenta, Color.Cyan)
+    val currentBgColor = colors[clickCount % colors.size]
+
+    // 每帧或每隔一定时间获取系统时间，测试渲染引擎是否在工作
+    LaunchedEffect(Unit) {
+        while (true) {
+            try {
+                // 使用 kotlinx.datetime 获取本地时间
+                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                val milli = (Clock.System.now().toEpochMilliseconds() % 1000).toString().padStart(3, '0')
+                currentTimeString = "${now.hour.toString().padStart(2, '0')}:${now.minute.toString().padStart(2, '0')}:${now.second.toString().padStart(2, '0')}.$milli"
+            } catch (e: Exception) {
+                // 后备方案：如果 kotlinx.datetime 在 Wasm 环境下因环境问题崩溃，改用时间戳递增
+                currentTimeString = "Render Active: ${LocalTime.now() /* 或任意递增值 */}"
+            }
+            delay(33) // 约 30 FPS 刷新率，足够观察是否卡顿
+        }
+    }
+
+    // 悬浮窗 UI
+    Box(
+        modifier = modifier
+            .background(currentBgColor.copy(alpha = 0.8f), shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .clickable { 
+                // 如果能走进这个回调，说明触控/鼠标交互事件分发正常
+                clickCount++ 
+            }
+            .padding(12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.Horizontal.CenterHorizontally) {
+            Text(
+                text = "Wasm Debug Clock",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.bind))
+            Text(
+                text = currentTimeString,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.bind))
+            Text(
+                text = "点击次数: $clickCount",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.Yellow
+            )
         }
     }
 }
