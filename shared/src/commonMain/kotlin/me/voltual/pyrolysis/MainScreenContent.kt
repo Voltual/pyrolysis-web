@@ -117,7 +117,9 @@ fun PyrolysisApp(
             isAgreementDataLoaded = true
         }
 
-        val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
+   //     val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
+   // 强行改成 false，直接不渲染弹窗
+val showAgreementDialog = false // isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
 
         BBQTheme(appDarkTheme = ThemeManager.isAppDarkTheme) {
             MainScreenContent(
