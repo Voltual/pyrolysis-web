@@ -296,11 +296,11 @@ fun MainScreenContent(
                         }
                     )
 
-                    if (showAgreementDialog) {
+/*                    if (showAgreementDialog) {
                         UserAgreementDialog(
-                            onAgreed = { /* ... */ },
+                            onAgreed = { },
                         )
-                    }
+                    }*/
 
 //                    CheckForUpdates(snackbarHostState)
                     WasmDebugWidget(
