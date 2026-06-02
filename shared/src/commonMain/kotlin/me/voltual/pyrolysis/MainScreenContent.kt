@@ -208,7 +208,7 @@ fun MainScreenContent(
     ) {
         Scaffold(
             topBar = {
-                if (!isPlayerScreen) {
+/*                if (!isPlayerScreen) {
                     TopAppBar(
                         title = {
                             val customContent = topAppBarController.titleContent
@@ -268,7 +268,7 @@ fun MainScreenContent(
                             titleContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
-                }
+                }*/
             },
             snackbarHost = { BBQSnackbarHost(hostState = snackbarHostState) },
             content = { innerPadding ->
@@ -285,7 +285,7 @@ fun MainScreenContent(
                     .padding(contentPadding) 
                     .roundScreenPadding()
                 ) {
-                    BBQNavDisplay(
+/*                    BBQNavDisplay(
                         backStack = currentBackStack,
                         onBack = { navigator.goBack() },
                         snackbarHostState = snackbarHostState,
@@ -294,7 +294,7 @@ fun MainScreenContent(
                             // 优先调用外部平台注入的页面提供器
                             platformEntryProvider(key, navigator)
                         }
-                    )
+                    )*/
 
 /*                    if (showAgreementDialog) {
                         UserAgreementDialog(
