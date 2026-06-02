@@ -78,7 +78,7 @@ fun main() {
                 // 动态改变文字的 Text 组件
                 Text(
                     text = "当前按钮点击次数: $count",
-                    modifier = Modifier.run { androidx.compose.foundation.layout.padding(bottom = androidx.compose.ui.unit.dp(16)) }
+
                 )
                 
                 // Material 3 按钮
