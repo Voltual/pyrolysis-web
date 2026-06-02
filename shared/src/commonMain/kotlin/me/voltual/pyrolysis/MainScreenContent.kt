@@ -82,10 +82,6 @@ import me.voltual.pyrolysis.ui.billing.BillingScreen
 import me.voltual.pyrolysis.ui.log.LogScreen
 import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsScreen
 import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsScreen
-import kotlin.time.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-
 
 val topLevelRoutes: Set<NavKey> = setOf(Home)
 
@@ -307,12 +303,8 @@ fun MainScreenContent(
                     }
 
                     CheckForUpdates(snackbarHostState)
-                    WasmDebugClock(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd) // 居于右下角悬浮
-                            .padding(16.dp)
-                            .zIndex(999f) // 确保在最顶层，不被页面组件遮挡
-                    )
+                    WasmDebugWidget(
+    )
                 }
             }
         )
@@ -489,59 +481,60 @@ private fun tryAutoLogin(
 }
 
 @Composable
-fun WasmDebugClock(modifier: Modifier = Modifier) {
-    // 自动刷新时间戳
-    var currentTimeString by remember { mutableStateOf("00:00:00.000") }
-    // 交互状态：点击时改变颜色
-    var clickCount by remember { mutableStateOf(0) }
-    val colors = listOf(Color.Red, Color.Green, Color.Blue, Color.Magenta, Color.Cyan)
-    val currentBgColor = colors[clickCount % colors.size]
+fun WasmDebugWidget() {
+    // 渲染驱动：这个数字会随着浏览器的渲染帧（requestAnimationFrame）疯狂递增
+    var renderFrameCount by remember { mutableStateOf(0L) }
+    
+    // 交互驱动：点击按钮时递增，用来测试触控/鼠标事件
+    var interactionCount by remember { mutableStateOf(0) }
 
-    // 每帧或每隔一定时间获取系统时间，测试渲染引擎是否在工作
+    // 只要 Wasm 渲染循环还活着，这个底层循环就会一直跑，数字就会疯狂闪烁
     LaunchedEffect(Unit) {
         while (true) {
-            try {
-                // 使用 kotlinx.datetime 获取本地时间
-                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                val milli = (Clock.System.now().toEpochMilliseconds() % 1000).toString().padStart(3, '0')
-                currentTimeString = "${now.hour.toString().padStart(2, '0')}:${now.minute.toString().padStart(2, '0')}:${now.second.toString().padStart(2, '0')}.$milli"
-            } catch (e: Exception) {
-                // 后备方案：如果 kotlinx.datetime 在 Wasm 环境下因环境问题崩溃，改用时间戳递增
-                currentTimeString = "Render Active: ${LocalTime.now() /* 或任意递增值 */}"
+            withFrameMillis { 
+                renderFrameCount++
             }
-            delay(33) // 约 30 FPS 刷新率，足够观察是否卡顿
         }
     }
 
-    // 悬浮窗 UI
-    Box(
-        modifier = modifier
-            .background(currentBgColor.copy(alpha = 0.8f), shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-            .clickable { 
-                // 如果能走进这个回调，说明触控/鼠标交互事件分发正常
-                clickCount++ 
-            }
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
+    // 用最基础的 Surface 包裹，确保可见性
+    Surface(
+        modifier = modifier.padding(16.dp),
+        color = Color(0xFF222222),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+        shadowElevation = 8.dp
     ) {
-        Column(horizontalAlignment = Alignment.Horizontal.CenterHorizontally) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = "Wasm Debug Clock",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White
+                text = "【Wasm 调试挂件】", 
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall
             )
-            Spacer(modifier = Modifier.height(4.bind))
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // 如果这个数字在动，说明 Canvas 渲染正常，网页没卡死
             Text(
-                text = currentTimeString,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
+                text = "帧渲染计数: $renderFrameCount", 
+                color = Color.Green,
+                style = MaterialTheme.typography.bodyMedium
             )
-            Spacer(modifier = Modifier.height(4.bind))
-            Text(
-                text = "点击次数: $clickCount",
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.Yellow
-            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // 如果点击这个按钮数字能变，说明触控/鼠标事件能正常分发进 Compose
+            Button(
+                onClick = { interactionCount++ },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+            ) {
+                Text(
+                    text = "点击测试: $interactionCount", 
+                    color = Color.Yellow
+                )
+            }
         }
     }
 }
