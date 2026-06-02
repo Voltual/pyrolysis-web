@@ -30,6 +30,7 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+                            implementation("androidx.datastore:datastore-core:1.3.0-alpha09")
             
             // Koin 依赖注入框架核心依赖
             implementation(libs.koin.core)
