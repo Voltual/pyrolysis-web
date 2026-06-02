@@ -22,22 +22,18 @@ kotlin {
         val commonMain by getting
         
         wasmJsMain.dependencies {
-            // 依赖共享的 shared 核心业务模块
             implementation(project(":shared"))
             
-            // Compose Multiplatform Web 核心依赖
             implementation(libs.compose.runtime)
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             
-            // Koin 依赖注入框架核心依赖
+            // 修复：补齐 Compose 资源加载核心依赖，使 Wasm 壳工程能解析 FontResource
+            implementation(libs.components.resources)
+            
             implementation(libs.koin.core)
-            
-            // 导航组件依赖（用于解析 NavKey 与 Navigator 符号）
             implementation(libs.compose.navigation3)
-            
-            // 协程支持
             implementation(libs.kotlinx.coroutines.core)
         }
     }
