@@ -3,6 +3,7 @@
 
 package me.voltual.pyrolysis.core.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -13,8 +14,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-
-// 导入 Compose 官方资源字体加载器
 import org.jetbrains.compose.resources.Font
 import me.voltual.pyrolysis.Res
 import me.voltual.pyrolysis.unifont
@@ -95,10 +94,12 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
+// 扩展颜色属性，内部逻辑适配新的 ThemeManager
 val MaterialTheme.messageLikeBg: Color
     @Composable get() {
+        val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (ThemeManager.isAppDarkTheme) {
+        return if (isDark) {
             customColors?.darkSet?.messageLikeBg ?: message_like_bg_dark
         } else {
             customColors?.lightSet?.messageLikeBg ?: message_like_bg
@@ -107,8 +108,9 @@ val MaterialTheme.messageLikeBg: Color
 
 val MaterialTheme.messageCommentBg: Color
     @Composable get() {
+        val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (ThemeManager.isAppDarkTheme) {
+        return if (isDark) {
             customColors?.darkSet?.messageCommentBg ?: message_comment_bg_dark
         } else {
             customColors?.lightSet?.messageCommentBg ?: message_comment_bg
@@ -117,8 +119,9 @@ val MaterialTheme.messageCommentBg: Color
 
 val MaterialTheme.messageDefaultBg: Color
     @Composable get() {
+        val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (ThemeManager.isAppDarkTheme) {
+        return if (isDark) {
             customColors?.darkSet?.messageDefaultBg ?: message_default_bg_dark
         } else {
             customColors?.lightSet?.messageDefaultBg ?: message_default_bg
@@ -127,8 +130,9 @@ val MaterialTheme.messageDefaultBg: Color
 
 val MaterialTheme.billingIncome: Color
     @Composable get() {
+        val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (ThemeManager.isAppDarkTheme) {
+        return if (isDark) {
             customColors?.darkSet?.billingIncome ?: billing_income_dark
         } else {
             customColors?.lightSet?.billingIncome ?: billing_income
@@ -137,8 +141,9 @@ val MaterialTheme.billingIncome: Color
 
 val MaterialTheme.billingExpense: Color
     @Composable get() {
+        val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (ThemeManager.isAppDarkTheme) {
+        return if (isDark) {
             customColors?.darkSet?.billingExpense ?: billing_expense_dark
         } else {
             customColors?.lightSet?.billingExpense ?: billing_expense
@@ -148,117 +153,39 @@ val MaterialTheme.billingExpense: Color
 @Composable
 fun getAppTypography(fontFamily: FontFamily): Typography {
     return Typography(
-        displayLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 57.sp,
-            lineHeight = 64.sp,
-            letterSpacing = (-0.25).sp
-        ),
-        displayMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 45.sp,
-            lineHeight = 52.sp
-        ),
-        displaySmall = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 36.sp,
-            lineHeight = 44.sp
-        ),
-        headlineLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 32.sp,
-            lineHeight = 40.sp
-        ),
-        headlineMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 28.sp,
-            lineHeight = 36.sp
-        ),
-        headlineSmall = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 24.sp,
-            lineHeight = 32.sp
-        ),
-        titleLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 22.sp,
-            lineHeight = 28.sp
-        ),
-        titleMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 18.sp,
-            lineHeight = 24.sp
-        ),
-        titleSmall = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            lineHeight = 20.sp
-        ),
-        bodyLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 16.sp,
-            lineHeight = 24.sp
-        ),
-        bodyMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            lineHeight = 20.sp
-        ),
-        bodySmall = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 12.sp,
-            lineHeight = 16.sp
-        ),
-        labelLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            lineHeight = 20.sp
-        ),
-        labelMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.sp,
-            lineHeight = 16.sp
-        ),
-        labelSmall = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
-            lineHeight = 16.sp
-        )
+        displayLarge = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
+        displayMedium = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 45.sp, lineHeight = 52.sp),
+        displaySmall = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 36.sp, lineHeight = 44.sp),
+        headlineLarge = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 32.sp, lineHeight = 40.sp),
+        headlineMedium = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 28.sp, lineHeight = 36.sp),
+        headlineSmall = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 24.sp, lineHeight = 32.sp),
+        titleLarge = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = 22.sp, lineHeight = 28.sp),
+        titleMedium = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 24.sp),
+        titleSmall = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp),
+        bodyLarge = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
+        bodyMedium = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
+        bodySmall = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 16.sp),
+        labelLarge = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp),
+        labelMedium = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
+        labelSmall = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 16.sp)
     )
 }
 
 @Composable
 fun BBQTheme(
-    appDarkTheme: Boolean,
     content: @Composable () -> Unit
 ) {   
+    val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
     val customColors = ThemeManager.customColorSet
     
-    val colorScheme = if (appDarkTheme) {
+    val colorScheme = if (isDark) {
         customColors?.darkSet?.toDarkColorScheme() ?: darkScheme
     } else {
         customColors?.lightSet?.toLightColorScheme() ?: lightScheme
     }
 
-    // 100% 纯净的 KMP 资源加载，无需任何 expect/actual
-    val unifontFamily = FontFamily(
-        Font(resource = Res.font.unifont)
-    )
+    // 默认使用系统字体，直到外部逻辑确定 Unifont 已加载
+    val unifontFamily = FontFamily(Font(resource = Res.font.unifont))
         
     MaterialTheme(
         colorScheme = colorScheme,
