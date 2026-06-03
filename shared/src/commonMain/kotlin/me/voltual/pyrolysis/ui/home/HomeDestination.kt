@@ -1,13 +1,9 @@
 //Copyright (C) 2025 Voltual
 // 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+
 package me.voltual.pyrolysis.ui.home
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
@@ -16,10 +12,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.AuthRepository 
-//import me.voltual.pyrolysis.restartMainActivity
 import me.voltual.pyrolysis.ui.*
 import me.voltual.pyrolysis.core.ui.theme.BBQTheme
 import me.voltual.pyrolysis.core.ui.theme.ThemeManager
+import me.voltual.pyrolysis.core.ui.theme.ThemeMode
 import org.koin.compose.viewmodel.koinViewModel 
 import org.koin.compose.koinInject            
 
@@ -31,33 +27,29 @@ fun HomeDestination(
     val authRepository: AuthRepository = koinInject()
     
     val uiState by viewModel.uiState
-
-    // Navigation 3 导航器
     val navigator = LocalNavigator.current
     val coroutineScope = rememberCoroutineScope()
 
-    //  恢复老代码的生命周期控制流，由 LaunchedEffect 驱动状态检查
     LaunchedEffect(Unit) {
         val userCredentials = authRepository.credentials.first()
         val isLoggedIn = userCredentials.token.isNotEmpty()
-
         viewModel.updateLoginState(isLoggedIn)
         if (isLoggedIn && uiState.dataLoadState == DataLoadState.NotLoaded) {
-            viewModel.loadUserData() // 已经不需要传 context 了
+            viewModel.loadUserData()
         }
     }
 
+    // 获取系统暗色状态用于切换逻辑
     val systemIsDark = isSystemInDarkTheme()
 
     val onAvatarClick = remember(systemIsDark) {
         {
             if (!uiState.showLoginPrompt) {
                 viewModel.toggleDarkMode(systemIsDark)
-                val isNowDark = ThemeManager.calculateIsDark(systemIsDark)
                 val modeName = when (ThemeManager.themeMode) {
                     ThemeMode.SYSTEM -> "跟随系统"
-                    ThemeMode.DARK -> "深色"
                     ThemeMode.LIGHT -> "亮色"
+                    ThemeMode.DARK -> "深色"
                 }
                 viewModel.showSnackbar("已切换至$modeName")
             } else {
@@ -71,7 +63,6 @@ fun HomeDestination(
             if (!uiState.showLoginPrompt) {
                 viewModel.refreshUserData() 
             }
-//            restartMainActivity(context) 
         }
     }
 
@@ -79,7 +70,8 @@ fun HomeDestination(
         { navigator.navigate(Login) }
     }
 
-    BBQTheme(appDarkTheme = ThemeManager.isAppDarkTheme) {
+    // BBQTheme 内部已处理 ThemeManager.themeMode，无需传参
+    BBQTheme {
         HomeScreen(
             state = HomeState(
                 showLoginPrompt = uiState.showLoginPrompt,
@@ -143,4 +135,3 @@ fun HomeDestination(
             snackbarHostState = snackbarHostState
         )
     }
-}

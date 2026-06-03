@@ -229,9 +229,10 @@ class HomeViewModel(
         uiState.value = uiState.value.copy(displayDaysDiff = daysDiff)
     }
 
-    fun toggleDarkMode() {
-        ThemeManager.toggleTheme()
+    fun toggleDarkMode(systemIsDark: Boolean) {
+        ThemeManager.toggleTheme(systemIsDark)
     }
+
 
     // 🌟 修复：这个方法现在被 UI 层的 LaunchedEffect 正常调用了
     fun updateLoginState(isLoggedIn: Boolean) {

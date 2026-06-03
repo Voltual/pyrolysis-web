@@ -12,14 +12,16 @@ enum class ThemeMode {
 }
 
 object ThemeManager {
-    // 当前的主题模式，初始设定为跟随系统
     var themeMode by mutableStateOf(ThemeMode.SYSTEM)
     
     var customColorSet by mutableStateOf<CustomColorSet?>(null)
     
+    fun updateCustomColors(colors: CustomColorSet) {
+        customColorSet = colors
+    }
+    
     /**
-     * 计算当前是否应该处于深色模式
-     * @param systemIsDark 系统当前的暗色状态
+     * 根据当前模式和系统状态计算最终是否为暗色
      */
     fun calculateIsDark(systemIsDark: Boolean): Boolean {
         return when (themeMode) {
@@ -30,16 +32,7 @@ object ThemeManager {
     }
 
     /**
-     * 更新自定义调色板
-     */
-    fun updateCustomColors(colors: CustomColorSet) {
-        customColorSet = colors
-    }
-    
-    /**
-     * 切换主题逻辑：
-     * 如果当前跟随系统，则根据系统状态切换到对立的手动模式
-     * 如果当前是手动模式，则在 浅色 -> 深色 -> 系统 之间循环
+     * 切换主题逻辑：系统 -> 亮色 -> 暗色 循环
      */
     fun toggleTheme(systemIsDark: Boolean) {
         themeMode = when (themeMode) {
@@ -49,8 +42,7 @@ object ThemeManager {
         }
     }
 
-    // 为了兼容旧代码中可能存在的直接引用，提供一个只读代理
-    // 注意：在 Composable 中应优先使用 calculateIsDark 以确保响应式
+    // 仅用于向后兼容，不建议在 Composable 中直接使用
     val isAppDarkTheme: Boolean
         get() = themeMode == ThemeMode.DARK
 }

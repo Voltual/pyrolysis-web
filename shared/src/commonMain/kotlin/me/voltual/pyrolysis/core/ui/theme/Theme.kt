@@ -94,60 +94,45 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-// 扩展颜色属性，内部逻辑适配新的 ThemeManager
+// 扩展属性适配 calculateIsDark
 val MaterialTheme.messageLikeBg: Color
     @Composable get() {
         val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (isDark) {
-            customColors?.darkSet?.messageLikeBg ?: message_like_bg_dark
-        } else {
-            customColors?.lightSet?.messageLikeBg ?: message_like_bg
-        }
+        return if (isDark) customColors?.darkSet?.messageLikeBg ?: message_like_bg_dark
+        else customColors?.lightSet?.messageLikeBg ?: message_like_bg
     }
 
 val MaterialTheme.messageCommentBg: Color
     @Composable get() {
         val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (isDark) {
-            customColors?.darkSet?.messageCommentBg ?: message_comment_bg_dark
-        } else {
-            customColors?.lightSet?.messageCommentBg ?: message_comment_bg
-        }
+        return if (isDark) customColors?.darkSet?.messageCommentBg ?: message_comment_bg_dark
+        else customColors?.lightSet?.messageCommentBg ?: message_comment_bg
     }
 
 val MaterialTheme.messageDefaultBg: Color
     @Composable get() {
         val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (isDark) {
-            customColors?.darkSet?.messageDefaultBg ?: message_default_bg_dark
-        } else {
-            customColors?.lightSet?.messageDefaultBg ?: message_default_bg
-        }
+        return if (isDark) customColors?.darkSet?.messageDefaultBg ?: message_default_bg_dark
+        else customColors?.lightSet?.messageDefaultBg ?: message_default_bg
     }
 
 val MaterialTheme.billingIncome: Color
     @Composable get() {
         val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (isDark) {
-            customColors?.darkSet?.billingIncome ?: billing_income_dark
-        } else {
-            customColors?.lightSet?.billingIncome ?: billing_income
-        }
+        return if (isDark) customColors?.darkSet?.billingIncome ?: billing_income_dark
+        else customColors?.lightSet?.billingIncome ?: billing_income
     }
 
 val MaterialTheme.billingExpense: Color
     @Composable get() {
         val isDark = ThemeManager.calculateIsDark(isSystemInDarkTheme())
         val customColors = ThemeManager.customColorSet
-        return if (isDark) {
-            customColors?.darkSet?.billingExpense ?: billing_expense_dark
-        } else {
-            customColors?.lightSet?.billingExpense ?: billing_expense
-        }
+        return if (isDark) customColors?.darkSet?.billingExpense ?: billing_expense_dark
+        else customColors?.lightSet?.billingExpense ?: billing_expense
     }
 
 @Composable
@@ -184,7 +169,6 @@ fun BBQTheme(
         customColors?.lightSet?.toLightColorScheme() ?: lightScheme
     }
 
-    // 默认使用系统字体，直到外部逻辑确定 Unifont 已加载
     val unifontFamily = FontFamily(Font(resource = Res.font.unifont))
         
     MaterialTheme(
@@ -195,41 +179,15 @@ fun BBQTheme(
 }
 
 private fun ColorSet.toLightColorScheme() = lightColorScheme(
-    primary = primary,
-    onPrimary = onPrimary,
-    primaryContainer = primaryContainer,
-    onPrimaryContainer = onPrimaryContainer,
-    secondary = secondary,
-    onSecondary = onSecondary,
-    secondaryContainer = secondaryContainer,
-    onSecondaryContainer = onSecondaryContainer,
-    surface = surface,
-    onSurface = onSurface,
-    surfaceVariant = surfaceVariant,
-    onSurfaceVariant = onSurfaceVariant,
-    outline = outline,
-    error = error,
-    onError = onError,
-    background = background,
-    onBackground = onBackground
+    primary = primary, onPrimary = onPrimary, primaryContainer = primaryContainer, onPrimaryContainer = onPrimaryContainer,
+    secondary = secondary, onSecondary = onSecondary, secondaryContainer = secondaryContainer, onSecondaryContainer = onSecondaryContainer,
+    surface = surface, onSurface = onSurface, surfaceVariant = surfaceVariant, onSurfaceVariant = onSurfaceVariant,
+    outline = outline, error = error, onError = onError, background = background, onBackground = onBackground
 )
 
 private fun ColorSet.toDarkColorScheme() = darkColorScheme(
-    primary = primary,
-    onPrimary = onPrimary,
-    primaryContainer = primaryContainer,
-    onPrimaryContainer = onPrimaryContainer,
-    secondary = secondary,
-    onSecondary = onSecondary,
-    secondaryContainer = secondaryContainer,
-    onSecondaryContainer = onSecondaryContainer,
-    surface = surface,
-    onSurface = onSurface,
-    surfaceVariant = surfaceVariant,
-    onSurfaceVariant = onSurfaceVariant,
-    outline = outline,
-    error = error,
-    onError = onError,
-    background = background,
-    onBackground = onBackground
+    primary = primary, onPrimary = onPrimary, primaryContainer = primaryContainer, onPrimaryContainer = onPrimaryContainer,
+    secondary = secondary, onSecondary = onSecondary, secondaryContainer = secondaryContainer, onSecondaryContainer = onSecondaryContainer,
+    surface = surface, onSurface = onSurface, surfaceVariant = surfaceVariant, onSurfaceVariant = onSurfaceVariant,
+    outline = outline, error = error, onError = onError, background = background, onBackground = onBackground
 )
