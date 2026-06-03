@@ -53,6 +53,12 @@ val commonModule = module {
     single { get<AppDatabase>().logDao() }  
     single { get<AppDatabase>().browseHistoryDao() } 
     single { get<AppDatabase>().postDraftDao() }
+    
+    single<Map<AppStore, IAppStoreRepository>> {
+        mutableMapOf<AppStore, IAppStoreRepository>().apply {
+            put(AppStore.XIAOQU_SPACE, get<XiaoQuRepository>())
+        }
+    }
 
     // 业务 DataStore 包装类
     single { ThemeColorDataStore(get(THEME_SETTINGS_STORE_QUALIFIER)) }

@@ -108,7 +108,7 @@ fun PyrolysisApp(
     ) {
         val snackbarHostState = remember { SnackbarHostState() }
 
-/*        val userAccepted by agreementDataStore.isUserAgreementAccepted.collectAsState(initial = true)
+        val userAccepted by agreementDataStore.isUserAgreementAccepted.collectAsState(initial = true)
         val xiaoquAccepted by agreementDataStore.isXiaoquAccepted.collectAsState(initial = true)
 
         var isAgreementDataLoaded by remember { mutableStateOf(false) }
@@ -117,9 +117,7 @@ fun PyrolysisApp(
             isAgreementDataLoaded = true
         }
 
-        val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)*/
-   // 强行改成 false，直接不渲染弹窗
-val showAgreementDialog = false // isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
+        val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
 
         BBQTheme(appDarkTheme = ThemeManager.isAppDarkTheme) {
             MainScreenContent(
@@ -144,8 +142,8 @@ fun MainScreenContent(
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-//    val authRepository: AuthRepository = koinInject() 
-//    val themeStore: ThemeColorDataStore = koinInject()
+    val authRepository: AuthRepository = koinInject() 
+    val themeStore: ThemeColorDataStore = koinInject()
 
     val currentRoute = navigationState.currentRoute
     val currentTopLevelRoute = navigationState.topLevelRoute
@@ -159,11 +157,11 @@ fun MainScreenContent(
     val isPlayerScreen = remember(currentRoute) { currentRoute is Player }
 
     val useDarkTheme = ThemeManager.isAppDarkTheme
-/*    val lightBgUri by themeStore.drawerHeaderLightBackgroundUriFlow.collectAsState(initial = null)
+    val lightBgUri by themeStore.drawerHeaderLightBackgroundUriFlow.collectAsState(initial = null)
     val darkBgUri by themeStore.drawerHeaderDarkBackgroundUriFlow.collectAsState(initial = null)
     val drawerHeaderBackgroundUri = if (useDarkTheme) darkBgUri else lightBgUri*/
 
-/*    val isLoggedIn = remember { mutableStateOf(false) }
+    val isLoggedIn = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         val credentials = authRepository.credentials.first()
         isLoggedIn.value = credentials.userId != 0L
@@ -176,7 +174,7 @@ fun MainScreenContent(
                 snackbarHostState = snackbarHostState
             )
         }
-    }*/
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -192,7 +190,7 @@ fun MainScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp),
-                        backgroundUri = null//drawerHeaderBackgroundUri
+                        backgroundUri = drawerHeaderBackgroundUri
                     )
                     NavigationDrawerItems(
                         navigator = navigator,
@@ -208,7 +206,7 @@ fun MainScreenContent(
     ) {
         Scaffold(
             topBar = {
-/*                if (!isPlayerScreen) {
+                if (!isPlayerScreen) {
                     TopAppBar(
                         title = {
                             val customContent = topAppBarController.titleContent
@@ -268,7 +266,7 @@ fun MainScreenContent(
                             titleContentColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
-                }*/
+                }
             },
             snackbarHost = { BBQSnackbarHost(hostState = snackbarHostState) },
             content = { innerPadding ->
@@ -296,13 +294,13 @@ fun MainScreenContent(
                         }
                     )
 
-/*                    if (showAgreementDialog) {
+                    if (showAgreementDialog) {
                         UserAgreementDialog(
                             onAgreed = { },
                         )
-                    }*/
+                    }
 
-//                    CheckForUpdates(snackbarHostState)
+                    CheckForUpdates(snackbarHostState)
                     WasmDebugWidget(
     )
                 }
