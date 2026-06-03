@@ -119,7 +119,7 @@ fun PyrolysisApp(
 
         val showAgreementDialog = isAgreementDataLoaded && !(userAccepted && xiaoquAccepted)
 
-        BBQTheme(appDarkTheme = ThemeManager.isAppDarkTheme) {
+        BBQTheme() {
             MainScreenContent(
                 navigationState = navigationState,
                 navigator = navigator,

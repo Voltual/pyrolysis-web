@@ -47,11 +47,18 @@ fun HomeDestination(
         }
     }
 
-    val onAvatarClick = remember {
+    val systemIsDark = isSystemInDarkTheme()
+
+    val onAvatarClick = remember(systemIsDark) {
         {
             if (!uiState.showLoginPrompt) {
-                viewModel.toggleDarkMode()
-                val modeName = if (ThemeManager.isAppDarkTheme) "深色" else "亮色"
+                viewModel.toggleDarkMode(systemIsDark)
+                val isNowDark = ThemeManager.calculateIsDark(systemIsDark)
+                val modeName = when (ThemeManager.themeMode) {
+                    ThemeMode.SYSTEM -> "跟随系统"
+                    ThemeMode.DARK -> "深色"
+                    ThemeMode.LIGHT -> "亮色"
+                }
                 viewModel.showSnackbar("已切换至$modeName")
             } else {
                 navigator.navigate(Login)
