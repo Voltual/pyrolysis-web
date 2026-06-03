@@ -87,7 +87,7 @@ val topLevelRoutes: Set<NavKey> = setOf(Home)
 
 @Composable
 fun PyrolysisApp(
-//    agreementDataStore: UserAgreementDataStore = koinInject(), 
+    agreementDataStore: UserAgreementDataStore = koinInject(), 
     modifier: Modifier = Modifier,
     platformEntryProvider: @Composable (NavKey, Navigator) -> (@Composable () -> Unit)? = { _, _ -> null }
 ) {
@@ -159,7 +159,7 @@ fun MainScreenContent(
     val useDarkTheme = ThemeManager.isAppDarkTheme
     val lightBgUri by themeStore.drawerHeaderLightBackgroundUriFlow.collectAsState(initial = null)
     val darkBgUri by themeStore.drawerHeaderDarkBackgroundUriFlow.collectAsState(initial = null)
-    val drawerHeaderBackgroundUri = if (useDarkTheme) darkBgUri else lightBgUri*/
+    val drawerHeaderBackgroundUri = if (useDarkTheme) darkBgUri else lightBgUri
 
     val isLoggedIn = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
