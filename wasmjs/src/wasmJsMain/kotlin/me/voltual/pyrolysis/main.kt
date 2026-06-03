@@ -7,17 +7,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.*
 import kotlinx.browser.document
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.preloadFont
@@ -39,37 +35,34 @@ fun main() {
 
     ComposeViewport(composeRoot) {
         @OptIn(ExperimentalResourceApi::class)
-        val unifontResource by preloadFont(Res.font.unifont).collectAsState()
+        val unifontState = preloadFont(Res.font.unifont)
+        val unifont = unifontState.value
         val fontFamilyResolver = LocalFontFamilyResolver.current
         
-        // 这里的 BBQTheme 此时不使用自定义字体，仅用于获取颜色
-        BBQTheme(useUnifont = false) {
-            if (unifontResource != null) {
-                // 字体加载完成后，更新解析器并进入主程序
-                LaunchedEffect(unifontResource) {
-                    fontFamilyResolver.preload(FontFamily(listOf(unifontResource!!)))
+        // 外部包裹 BBQTheme 以确保启动页能获取到主题中的 primaryContainer 颜色
+        BBQTheme {
+            if (unifont != null) {
+                LaunchedEffect(unifont) {
+                    fontFamilyResolver.preload(FontFamily(listOf(unifont)))
                 }
 
-                // 再次嵌套或切换状态以启用自定义字体
-                BBQTheme(useUnifont = true) {
-                    PyrolysisApp(
-                        platformEntryProvider = { _, _ -> null }
-                    )
-                }
+                PyrolysisApp(
+                    platformEntryProvider = { _, _ -> null }
+                )
             } else {
-                // 启动页：背景为 primaryContainer，中间是 Fire 图标
+                // WasmJS 启动页：背景为主题的 primaryContainer，中间是 Fire 图标
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Fire,
                             contentDescription = "Loading",
-                            modifier = Modifier.size(64.dp),
+                            modifier = Modifier.size(100.dp),
                             tint = Color.Unspecified // 保持图标原始颜色
                         )
                     }
