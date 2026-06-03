@@ -285,7 +285,7 @@ fun MainScreenContent(
                     .padding(contentPadding) 
                     .roundScreenPadding()
                 ) {
-/*                    BBQNavDisplay(
+                    BBQNavDisplay(
                         backStack = currentBackStack,
                         onBack = { navigator.goBack() },
                         snackbarHostState = snackbarHostState,
@@ -294,7 +294,7 @@ fun MainScreenContent(
                             // 优先调用外部平台注入的页面提供器
                             platformEntryProvider(key, navigator)
                         }
-                    )*/
+                    )
 
 /*                    if (showAgreementDialog) {
                         UserAgreementDialog(
