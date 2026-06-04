@@ -31,7 +31,6 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
-import kotlin.math.roundToInt
 
 class AppReleaseViewModel(
     private val xiaoQuRepo: XiaoQuRepository
@@ -57,8 +56,9 @@ class AppReleaseViewModel(
     val versionCode = mutableStateOf(0L)
     val appSize = mutableStateOf("")
     val localIconFile = mutableStateOf<PlatformFile?>(null)
-    private var apkBytes: ByteArray? = null
-    private var iconBytes: ByteArray? = null
+    
+    // 重构：流式上传不再在 ViewModel 层长时间持有大文件的 ByteArray，避免 OOM
+    private var iconPlatformFile: PlatformFile? = null
 
     // --- 小趣空间特定状态 ---
     val isUpdateMode = mutableStateOf(false)
@@ -130,61 +130,64 @@ class AppReleaseViewModel(
         }
     }
 
+    /**
+     * 重构后的 APK 解析与上传逻辑
+     */
     fun parseAndUploadApk(file: PlatformFile) {
         viewModelScope.launch(Dispatchers.Default) {
-            _processFeedback.value = Result.success("正在读取 APK 文件...")
+            _processFeedback.value = Result.success("正在读取 APK 元数据...")
 
+            // 1. 读取字节用于解析 (元数据很小，这不会导致 OOM)
             val fileBytes = try {
                 file.readBytes()
             } catch (e: Exception) {
                 _processFeedback.value = Result.failure(Exception("读取 APK 文件失败: ${e.message}"))
                 return@launch
             }
-            apkBytes = fileBytes
 
+            // 2. 解析元数据
             val parser = ApkParser(fileBytes)
-            val metadata: ApkMetadata = try {
-                parser.parse()
+            val metadata: ApkMetadata = try { 
+                parser.parse() 
             } catch (e: Exception) {
                 _processFeedback.value = Result.failure(Exception("APK 解析失败: ${e.message}"))
                 return@launch
             }
-
-            val sizeInBytes = fileBytes.size.toLong()
-            val sizeMb = (sizeInBytes / 1024.0 / 1024.0 * 100).roundToInt() / 100.0
-
+            
+            // 3. 提取图标字节用于预览与上传
+            var iconBytesForPreview: ByteArray? = null
             metadata.iconPath?.let { internalPath ->
-                iconBytes = parser.getFileBytes(internalPath)
+                iconBytesForPreview = parser.getFileBytes(internalPath)
             }
 
+            // 4. 更新 UI 状态
             withContext(Dispatchers.Main) {
                 appName.value = metadata.label ?: "未知应用"
                 packageName.value = metadata.packageName ?: ""
                 versionName.value = metadata.versionName ?: "N/A"
                 versionCode.value = metadata.versionCode ?: 0L
-                appSize.value = sizeMb.toString()
-                localIconFile.value = file
+                appSize.value = (fileBytes.size / 1024.0 / 1024.0).let { mb -> "%.2f".format(mb) }
+                localIconFile.value = file // 用于显示占位符
                 appExplain.value = "适配性能描述 •\n包名：${metadata.packageName}\n版本：${metadata.versionName}"
             }
 
+            // 5. 执行上传逻辑，直接传递 PlatformFile 对象进行流式上传
             if (_selectedStore.value == AppStore.XIAOQU_SPACE) {
-                executeXiaoQuUpload(fileBytes, file.name, iconBytes)
+                executeXiaoQuUpload(file, iconBytesForPreview)
             } else {
                 _processFeedback.value = Result.success("APK解析完成，准备发布")
             }
         }
     }
 
-    private suspend fun executeXiaoQuUpload(apkBytes: ByteArray, apkFileName: String, iconBytes: ByteArray?) {
+    private suspend fun executeXiaoQuUpload(apkFile: PlatformFile, iconBytes: ByteArray?) {
         val uploadJobs = mutableListOf<kotlinx.coroutines.Job>()
 
         uploadJobs += viewModelScope.launch(Dispatchers.Default) {
             isApkUploading.value = true
-            val serviceType = when (selectedApkUploadService.value) {
-                ApkUploadService.KEYUN -> "KEYUN"
-                ApkUploadService.WANYUEYUN -> "WANYUEYUN"
-            }
-            val apkResult = xiaoQuRepo.uploadApk(apkBytes, apkFileName, serviceType)
+            val serviceType = selectedApkUploadService.value.name
+            // 直接传递 PlatformFile 进行流式上传
+            val apkResult = xiaoQuRepo.uploadApk(apkFile, serviceType)
             apkResult.onSuccess { url ->
                 apkDownloadUrl.value = url
             }.onFailure { e ->
@@ -198,6 +201,7 @@ class AppReleaseViewModel(
                 isIconUploading.value = true
                 val now = Clock.System.now().toEpochMilliseconds()
                 val iconFileName = "icon_${now}.png"
+                // 图标体积较小，直接使用有 ByteArray 的重载上传即可
                 val imageResult = xiaoQuRepo.uploadImage(bytes, iconFileName, "icon")
                 imageResult.onSuccess { url ->
                     iconUrl.value = url
@@ -224,20 +228,18 @@ class AppReleaseViewModel(
             val remainingSlots = MAX_INTRO_IMAGES_XIAOQU - currentCount
             val filesToUpload = files.take(remainingSlots)
 
+            // 补全重构：利用新的 PlatformFile 流式上传接口进行多图并发上传
             val uploadJobs = filesToUpload.map { file ->
                 launch {
-                    try {
-                        val imageBytes = file.readBytes()
-                        val imageResult = xiaoQuRepo.uploadImage(imageBytes, file.name, "intro")
-                        imageResult.onSuccess { url ->
+                    val imageResult = xiaoQuRepo.uploadImage(file, "intro")
+                    imageResult.onSuccess { url ->
+                        withContext(Dispatchers.Main) {
                             if (introductionImageUrls.size < MAX_INTRO_IMAGES_XIAOQU) {
                                 introductionImageUrls.add(url)
                             }
-                        }.onFailure { e ->
-                            withContext(Dispatchers.Main) { _processFeedback.value = Result.failure(e) }
                         }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) { _processFeedback.value = Result.failure(Exception("读取图片失败: ${file.name}")) }
+                    }.onFailure { e ->
+                        withContext(Dispatchers.Main) { _processFeedback.value = Result.failure(e) }
                     }
                 }
             }

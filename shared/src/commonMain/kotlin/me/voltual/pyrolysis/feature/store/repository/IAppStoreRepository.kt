@@ -9,6 +9,7 @@
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
 package me.voltual.pyrolysis.feature.store.repository
 
+import io.github.vinceglb.filekit.PlatformFile
 import me.voltual.pyrolysis.data.unified.*
 import kotlinx.io.files.Path
 
@@ -111,6 +112,13 @@ interface IAppStoreRepository {
     suspend fun getAppVersionsByPackageName(packageName: String, page: Int): Result<Pair<List<UnifiedAppItem>, Int>> {
         return Result.failure(UnsupportedOperationException("当前商店不支持获取分页的版本列表"))
     }
+    
+    suspend fun uploadImage(file: PlatformFile, type: String): Result<String> =
+        Result.failure(UnsupportedOperationException("当前商店不支持基于 PlatformFile 的图片上传"))
+
+    suspend fun uploadApk(file: PlatformFile, serviceType: String): Result<String> =
+        Result.failure(UnsupportedOperationException("当前商店不支持基于 PlatformFile 的 APK 上传"))
+
 
     /**
      * 获取应用相对于当前登录用户的收藏/点赞状态
