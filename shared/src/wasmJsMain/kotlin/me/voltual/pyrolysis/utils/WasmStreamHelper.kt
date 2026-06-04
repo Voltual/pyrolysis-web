@@ -1,12 +1,12 @@
-// FILE: shared/src/wasmJsMain/kotlin/me/voltual/pyrolysis/util/WasmStreamHelper.kt
 package me.voltual.pyrolysis.util
 
-import me.voltual.pyrolysis.BrowserFile
 import kotlin.js.Promise
 import org.khronos.webgl.Uint8Array
-import org.khronos.webgl.get
 
-// 使用 @JsFun 定义底层的 JS 调用，这是 Wasm 最稳定的互操作方式
+/**
+ * 使用 @JsFun 直接定义底层的 JS 调用。
+ * JsAny 是 Kotlin/Wasm 与 JS 交互的基础类型。
+ */
 @JsFun("(file) => file.stream().getReader()")
 internal external fun getReader(file: JsAny): JsAny
 
