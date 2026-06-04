@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
+import io.github.vinceglb.filekit.name // 必须显式导入扩展属性
 import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.feature.store.repository.IAppStoreRepository
@@ -31,7 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.math.roundToInt
-
 
 class AppReleaseViewModel(
     private val xiaoQuRepo: XiaoQuRepository
@@ -57,7 +57,6 @@ class AppReleaseViewModel(
     val versionCode = mutableStateOf(0L)
     val appSize = mutableStateOf("")
     val localIconFile = mutableStateOf<PlatformFile?>(null)
-    // 移除 tempIconPath 和 tempApkPath，直接使用 ByteArray
     private var apkBytes: ByteArray? = null
     private var iconBytes: ByteArray? = null
 
@@ -106,9 +105,7 @@ class AppReleaseViewModel(
     val isWearOs = mutableStateOf(0)
     val abi = mutableStateOf(0)
     val screenshotsFiles = mutableStateListOf<PlatformFile>()
-    // 移除 tempScreenshotPaths，直接使用 PlatformFile 读取字节
     private val screenshotBytes = mutableStateListOf<Pair<PlatformFile, ByteArray>>()
-
 
     val isApkUploading = mutableStateOf(false)
     val isIconUploading = mutableStateOf(false)
@@ -123,7 +120,6 @@ class AppReleaseViewModel(
         val currentCount = screenshotsFiles.size
         val remainingSlots = MAX_INTRO_IMAGES_XIAOQU - currentCount
         val filesToUpload = files.take(remainingSlots)
-
         screenshotsFiles.addAll(filesToUpload)
     }
 
@@ -134,14 +130,10 @@ class AppReleaseViewModel(
         }
     }
 
-    /**
-     * 重构后的 APK 解析与上传逻辑，完全基于 ByteArray，移除文件系统依赖
-     */
     fun parseAndUploadApk(file: PlatformFile) {
         viewModelScope.launch(Dispatchers.Default) {
             _processFeedback.value = Result.success("正在读取 APK 文件...")
 
-            // 1. 将 PlatformFile 直接读入内存
             val fileBytes = try {
                 file.readBytes()
             } catch (e: Exception) {
@@ -150,7 +142,6 @@ class AppReleaseViewModel(
             }
             apkBytes = fileBytes
 
-            // 2. 使用改造后的 ApkParser 解析
             val parser = ApkParser(fileBytes)
             val metadata: ApkMetadata = try {
                 parser.parse()
@@ -159,34 +150,23 @@ class AppReleaseViewModel(
                 return@launch
             }
 
-            // 3. 计算文件大小
             val sizeInBytes = fileBytes.size.toLong()
             val sizeMb = (sizeInBytes / 1024.0 / 1024.0 * 100).roundToInt() / 100.0
 
-            // 4. 提取图标字节
             metadata.iconPath?.let { internalPath ->
                 iconBytes = parser.getFileBytes(internalPath)
             }
 
-            // 5. 更新 UI 状态
             withContext(Dispatchers.Main) {
                 appName.value = metadata.label ?: "未知应用"
                 packageName.value = metadata.packageName ?: ""
                 versionName.value = metadata.versionName ?: "N/A"
                 versionCode.value = metadata.versionCode ?: 0L
                 appSize.value = sizeMb.toString()
-
-                // 更新 localIconFile 以便 UI 预览
-                iconBytes?.let {
-                    // 创建一个临时的 PlatformFile 用于预览，这部分需要平台特定实现
-                    // 为了简单起见，我们暂时只更新 iconUrl，或者直接处理字节
-                    // 这里我们假设 UI 可以处理一个 ByteArray
-                }
-                localIconFile.value = file // 用于显示一个占位符或文件名
+                localIconFile.value = file
                 appExplain.value = "适配性能描述 •\n包名：${metadata.packageName}\n版本：${metadata.versionName}"
             }
 
-            // 6. 执行上传逻辑
             if (_selectedStore.value == AppStore.XIAOQU_SPACE) {
                 executeXiaoQuUpload(fileBytes, file.name, iconBytes)
             } else {
@@ -204,7 +184,6 @@ class AppReleaseViewModel(
                 ApkUploadService.KEYUN -> "KEYUN"
                 ApkUploadService.WANYUEYUN -> "WANYUEYUN"
             }
-            // 使用新的 ByteArray-based 上传方法
             val apkResult = xiaoQuRepo.uploadApk(apkBytes, apkFileName, serviceType)
             apkResult.onSuccess { url ->
                 apkDownloadUrl.value = url
@@ -219,7 +198,6 @@ class AppReleaseViewModel(
                 isIconUploading.value = true
                 val now = Clock.System.now().toEpochMilliseconds()
                 val iconFileName = "icon_${now}.png"
-                // 使用新的 ByteArray-based 上传方法
                 val imageResult = xiaoQuRepo.uploadImage(bytes, iconFileName, "icon")
                 imageResult.onSuccess { url ->
                     iconUrl.value = url
@@ -269,10 +247,7 @@ class AppReleaseViewModel(
     }
 
     fun clearProcessFeedback() { _processFeedback.value = null }
-
-    fun removeIntroductionImage(url: String) {
-        introductionImageUrls.remove(url)
-    }
+    fun removeIntroductionImage(url: String) { introductionImageUrls.remove(url) }
 
     fun releaseApp(onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -280,10 +255,6 @@ class AppReleaseViewModel(
             _processFeedback.value = Result.success("正在准备发布...")
 
             try {
-                // 在发布时，如果需要截图，则需要读取它们
-                val finalScreenshotPaths = mutableListOf<String>() // 假设弦平台需要URL
-                // 这里需要根据弦平台的需求调整，如果是上传字节，则需要另一套逻辑
-
                 val params = UnifiedAppReleaseParams(
                     store = _selectedStore.value,
                     appName = appName.value,
@@ -291,9 +262,9 @@ class AppReleaseViewModel(
                     versionName = versionName.value,
                     versionCode = versionCode.value,
                     sizeInMb = appSize.value.toDoubleOrNull() ?: 0.0,
-                    iconPath = null, // 移除 Path 依赖
+                    iconPath = null,
                     iconUrl = iconUrl.value,
-                    apkPath = null, // 移除 Path 依赖
+                    apkPath = null,
                     apkUrl = apkDownloadUrl.value,
                     introduce = appIntroduce.value,
                     explain = appExplain.value,
@@ -318,7 +289,7 @@ class AppReleaseViewModel(
                     keyword = keyword.value,
                     isWearOs = isWearOs.value,
                     abi = abi.value,
-                    screenshots = emptyList() // 移除 Path 依赖
+                    screenshots = emptyList()
                 )
 
                 getCurrentRepo().releaseApp(params).onSuccess {
