@@ -45,9 +45,8 @@ public actual fun createUploadProvider(file: PlatformFile): ChannelProvider {
                     }
                 }
             } catch (e: Exception) {
-    // 替换 channel.close(e) 为 closeOnError
-    channel.closeOnError(e)
-} finally {
+                channel.cancel(e)
+            } finally {
                 releaseReaderLock(reader)
             }
         }.channel
