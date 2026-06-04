@@ -3,21 +3,12 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     id("kotlin-parcelize")
-    id("com.github.gmazzo.buildconfig") version "5.3.0"
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.androidx.room3)    
 //    alias(libs.plugins.protobuf)
     alias(libs.plugins.shizuku.refine)
-}
-
-buildConfig {
-    // 自动将 Gradle 的版本号注入到代码中
-    useKotlinOutput()
-    
-    val provider = providers.provider { project.version.toString() }
-    buildConfigField("VERSION", provider)
 }
 
 android {
