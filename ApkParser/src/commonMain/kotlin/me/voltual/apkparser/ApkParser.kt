@@ -1,3 +1,4 @@
+// FILE: me.voltual.apkparser/ApkParser.kt
 package me.voltual.apkparser
 
 import kotlinx.io.*
@@ -11,16 +12,19 @@ import dev.rushii.arsc.internal.ArscStringPool
 import dev.rushii.arsc.internal.ArscInternalApi
 
 @OptIn(ArscInternalApi::class)
-public class ApkParser(private val apkSource: Source) {
+public class ApkParser(private val apkBytes: ByteArray) {
 
     /**
-     * 解析元数据。注意：此操作会消耗 apkSource。
+     * 解析元数据。
      */
     public fun parse(): ApkMetadata {
         var manifestBytes: ByteArray? = null
         var arscBytes: ByteArray? = null
 
+        // 从内存中的 apkBytes 创建 Source
+        val apkSource = Buffer().apply { write(apkBytes) }
         val zis = ZipInputStream(apkSource)
+
         while (true) {
             val entry = zis.nextEntry ?: break
             when (entry.name) {
@@ -29,6 +33,7 @@ public class ApkParser(private val apkSource: Source) {
             }
             if (manifestBytes != null && arscBytes != null) break
         }
+        zis.close() // 关闭流
 
         if (manifestBytes == null) error("AndroidManifest.xml not found")
 
@@ -50,7 +55,7 @@ public class ApkParser(private val apkSource: Source) {
         if (arscBytes != null && (resInfo.labelRes != null || resInfo.iconRes != null || resInfo.versionNameRes != null)) {
             val arscFile = ArscFile(arscBytes)
             val resolver = ArscResolver(arscFile)
-            
+
             if (label == null) label = resInfo.labelRes?.let { resolver.resolveString(it) }
             if (iconPath == null) iconPath = resInfo.iconRes?.let { resolver.resolveString(it) }
             if (versionName == null) versionName = resInfo.versionNameRes?.let { resolver.resolveString(it) }
@@ -66,21 +71,26 @@ public class ApkParser(private val apkSource: Source) {
     }
 
     /**
-     * 静态工具：从新的 Source 中提取指定路径的文件字节
+     * 从 APK 字节中提取指定路径的文件。
+     * @param path 文件在 APK 压缩包内的路径。
+     * @return 文件的字节数组，如果未找到则返回 null。
      */
-    public companion object {
-        public fun getFileBytes(source: Source, path: String): ByteArray? {
-            val zis = ZipInputStream(source)
-            // 统一处理路径分隔符，ZIP 内部通常使用 '/'
-            val targetPath = path.replace("\\", "/").removePrefix("/")
-            while (true) {
-                val entry = zis.nextEntry ?: break
-                if (entry.name.replace("\\", "/").removePrefix("/") == targetPath) {
-                    return zis.readBytes()
-                }
+    public fun getFileBytes(path: String): ByteArray? {
+        // 每次都从原始的 apkBytes 创建新的 Source
+        val source = Buffer().apply { write(apkBytes) }
+        val zis = ZipInputStream(source)
+        // 统一处理路径分隔符，ZIP 内部通常使用 '/'
+        val targetPath = path.replace("\\", "/").removePrefix("/")
+        while (true) {
+            val entry = zis.nextEntry ?: break
+            if (entry.name.replace("\\", "/").removePrefix("/") == targetPath) {
+                val bytes = zis.readBytes()
+                zis.close()
+                return bytes
             }
-            return null
         }
+        zis.close()
+        return null
     }
 
     private fun parseAxmlStringPool(source: Source): List<String> {

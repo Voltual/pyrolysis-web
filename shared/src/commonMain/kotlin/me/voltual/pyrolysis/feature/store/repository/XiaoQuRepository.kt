@@ -1,3 +1,4 @@
+// FILE: me.voltual.pyrolysis.feature.store.repository/XiaoQuRepository.kt
 //Copyright (C) 2025 Voltual
 // 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
 //（或任意更新的版本）的条款重新分发和/或修改它。
@@ -11,25 +12,17 @@ package me.voltual.pyrolysis.feature.store.repository
 import io.ktor.client.call.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
-import io.ktor.utils.io.writeFully
-import io.ktor.utils.io.writer
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.first
 import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.AuthRepository // 导入新 Repository
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.unified.*
-import kotlinx.io.Buffer
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import kotlinx.io.readByteArray
-import kotlinx.io.buffered
 
 /**
  * 小趣空间数据仓库实现。
  * 现已完全去 Context 化，使用 AuthRepository 注入。
+ * 已适配 ByteArray 上传，支持 Wasm 平台。
  */
 class XiaoQuRepository(
     private val apiClient: KtorClient.ApiService,
@@ -42,12 +35,12 @@ class XiaoQuRepository(
         // 直接从注入的 Repository 获取 token，不再需要 BBQApplication.instance
         return authRepository.credentials.first().token
     }
-    
+
     override suspend fun getCurrentUserDetail(): Result<UnifiedUserDetail> {
         return try {
             val token = getToken()
             if (token.isEmpty()) return Result.failure(Exception("未登录"))
-            
+
             apiClient.getUserInfo(token = token).map { response ->
                 if (response.code == 1) {
                     UnifiedUserDetail(
@@ -72,35 +65,35 @@ class XiaoQuRepository(
             Result.failure(e)
         }
     }
-    
+
     override suspend fun updateUserProfile(params: UpdateUserProfileParams): Result<Unit> {
         return try {
             val token = getToken()
             if (token.isEmpty()) return Result.failure(Exception("未登录"))
-            
+
             if (!params.nickname.isNullOrEmpty()) {
                 apiClient.modifyUserInfo(token = token, nickname = params.nickname).getOrThrow().let {
                     if (it.code != 1) throw Exception("昵称修改失败")
                 }
             }
-            
+
             if (!params.qqNumber.isNullOrEmpty()) {
                 apiClient.modifyUserInfo(token = token, qq = params.qqNumber).getOrThrow().let {
                     if (it.code != 1) throw Exception("QQ号修改失败")
                 }
             }
-            
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
+
     override suspend fun uploadAvatar(imageBytes: ByteArray, filename: String): Result<String> {
         return try {
             val token = getToken()
             if (token.isEmpty()) return Result.failure(Exception("未登录"))
-            
+
             apiClient.uploadAvatar(appid = 1, token = token, file = imageBytes, filename = filename).map { response ->
                 if (response.code == 1) "上传成功" else throw Exception("头像上传失败: ${response.msg}")
             }
@@ -137,7 +130,7 @@ class XiaoQuRepository(
         return try {
             val (catId, subCatId) = parseCategory(categoryId)
             val limit = if (userId != null) 12 else 9
-            
+
             apiClient.getAppsList(
                 limit = limit,
                 page = page,
@@ -236,7 +229,7 @@ class XiaoQuRepository(
             Result.failure(e)
         }
     }
-    
+
     override suspend fun releaseApp(params: UnifiedAppReleaseParams): Result<Unit> {
         return try {
             val token = getToken()
@@ -286,19 +279,25 @@ class XiaoQuRepository(
             Result.failure(e)
         }
     }
-
+    
+    // 保持 Path 版本以兼容旧代码或非 Wasm 平台
     override suspend fun uploadImage(path: Path, type: String): Result<String> {
+        return Result.failure(UnsupportedOperationException("Path-based upload is not supported in this context. Use ByteArray overload."))
+    }
+
+    override suspend fun uploadImage(bytes: ByteArray, filename: String, type: String): Result<String> {
         return try {
-            val response = KtorClient.uploadHttpClient.submitFormWithBinaryData(
+            val response = KtorClient.uploadHttpClient.submitForm(
                 url = "api.php",
-                formData = formData {
-                    append("file", createChannelProvider(path), Headers.build {
-                        append(HttpHeaders.ContentType, "image/*")
-                        append(HttpHeaders.ContentDisposition, "filename=\"${path.name}\"")
+                formParameters = parameters {
+                    // Ktor 能够直接处理 ByteArray
+                    append("file", bytes, Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.Image.Any)
+                        append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
                     })
                 }
             )
-            
+
             if (response.status.isSuccess()) {
                 val responseBody: KtorClient.UploadResponse = response.body()
                 if (responseBody.code == 0 && !responseBody.downurl.isNullOrBlank()) {
@@ -308,32 +307,37 @@ class XiaoQuRepository(
                 }
             } else {
                 Result.failure(Exception("网络错误 ${response.status}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun uploadApk(path: Path, serviceType: String): Result<String> {
-        return try {
-            when (serviceType) {
-                "KEYUN" -> uploadToKeyun(path)
-                "WANYUEYUN" -> uploadToWanyueyun(path)
-                else -> Result.failure(Exception("不支持的上传服务类型: $serviceType"))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    private suspend fun uploadToKeyun(path: Path): Result<String> {
+    // 保持 Path 版本以兼容旧代码或非 Wasm 平台
+    override suspend fun uploadApk(path: Path, serviceType: String): Result<String> {
+        return Result.failure(UnsupportedOperationException("Path-based upload is not supported in this context. Use ByteArray overload."))
+    }
+
+    override suspend fun uploadApk(bytes: ByteArray, filename: String, serviceType: String): Result<String> {
         return try {
-            val response = KtorClient.uploadHttpClient.submitFormWithBinaryData(
+            when (serviceType) {
+                "KEYUN" -> uploadToKeyun(bytes, filename)
+                "WANYUEYUN" -> uploadToWanyueyun(bytes, filename)
+                else -> Result.failure(Exception("不支持的上传服务类型: $serviceType"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun uploadToKeyun(bytes: ByteArray, filename: String): Result<String> {
+        return try {
+            val response = KtorClient.uploadHttpClient.submitForm(
                 url = "api.php",
-                formData = formData {
-                    append("file", createChannelProvider(path), Headers.build {
-                        append(HttpHeaders.ContentType, "application/octet-stream")
-                        append(HttpHeaders.ContentDisposition, "filename=\"${path.name}\"")
+                formParameters = parameters {
+                    append("file", bytes, Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.Application.OctetStream)
+                        append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
                     })
                 }
             )
@@ -353,15 +357,15 @@ class XiaoQuRepository(
         }
     }
 
-    private suspend fun uploadToWanyueyun(path: Path): Result<String> {
+    private suspend fun uploadToWanyueyun(bytes: ByteArray, filename: String): Result<String> {
         return try {
-            val response = KtorClient.wanyueyunUploadHttpClient.submitFormWithBinaryData(
+            val response = KtorClient.wanyueyunUploadHttpClient.submitForm(
                 url = "upload",
-                formData = formData {
+                formParameters = parameters {
                     append("Api", "小趣API")
-                    append("file", createChannelProvider(path), Headers.build {
-                        append(HttpHeaders.ContentType, "application/vnd.android.package-archive")
-                        append(HttpHeaders.ContentDisposition, "filename=\"${path.name}\"")
+                    append("file", bytes, Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.Application.Vnd.AndroidPackageArchive)
+                        append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
                     })
                 }
             )
@@ -380,28 +384,13 @@ class XiaoQuRepository(
             Result.failure(e)
         }
     }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun createChannelProvider(path: Path): ChannelProvider {
-        return ChannelProvider {
-            GlobalScope.writer(Dispatchers.Default) {
-                fileSystem.source(path).buffered().use { source ->
-                    val buffer = Buffer()
-                    while (!source.exhausted()) {
-                        source.readAtMostTo(buffer, 8192L)
-                        channel.writeFully(buffer.readByteArray())
-                    }
-                }
-            }.channel
-        }
-    }
     
     override suspend fun deleteReview(reviewId: String): Result<Unit> = Result.failure(Exception("小趣空间暂不支持评价功能。"))
 
     override suspend fun getMyReviews(page: Int): Result<Pair<List<UnifiedComment>, Int>> = Result.failure(Exception("小趣空间暂不支持获取我的评价功能。"))
 
     override suspend fun deleteComment(appId: String, commentId: String): Result<Unit> = deleteComment(commentId)
-    
+
     override suspend fun getMyComments(page: Int): Result<Pair<List<UnifiedComment>, Int>> = Result.failure(NotImplementedError("小趣空间不支持获取我的评论"))
 
     override suspend fun getAppDownloadSources(appId: String, versionId: Long): Result<List<UnifiedDownloadSource>> {

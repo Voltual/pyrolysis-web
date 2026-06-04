@@ -1,3 +1,4 @@
+// FILE: me.voltual.pyrolysis.feature.store.repository/IAppStoreRepository.kt
 //Copyright (C) 2025 Voltual
 // 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
 //（或任意更新的版本）的条款重新分发和/或修改它。
@@ -14,6 +15,7 @@ import kotlinx.io.files.Path
 /**
  * 统一的应用商店仓库接口定义。
  * 已移除 java.io 依赖，全面适配 Okio。
+ * 新增 ByteArray 重载以支持 Wasm 等无文件系统环境。
  */
 interface IAppStoreRepository {
 
@@ -69,16 +71,29 @@ interface IAppStoreRepository {
     // ==========================================================
 
     /**
-     * 上传图片，使用 okio.Path 代替 java.io.File
+     * 上传图片，使用 okio.Path 代替 java.io.File (适用于 JVM/Native)
      */
     suspend fun uploadImage(path: Path, type: String): Result<String> =
-        Result.failure(UnsupportedOperationException("当前商店不支持上传图片"))
+        Result.failure(UnsupportedOperationException("当前商店不支持基于路径的图片上传"))
 
     /**
-     * 上传 APK，使用 okio.Path 代替 java.io.File
+     * 上传图片，使用 ByteArray (适用于所有平台, 特别是 Wasm)
+     */
+    suspend fun uploadImage(bytes: ByteArray, filename: String, type: String): Result<String> =
+        Result.failure(UnsupportedOperationException("当前商店不支持基于字节的图片上传"))
+
+
+    /**
+     * 上传 APK，使用 okio.Path 代替 java.io.File (适用于 JVM/Native)
      */
     suspend fun uploadApk(path: Path, serviceType: String): Result<String> =
-        Result.failure(UnsupportedOperationException("当前商店不支持上传 APK"))
+        Result.failure(UnsupportedOperationException("当前商店不支持基于路径的 APK 上传"))
+
+    /**
+     * 上传 APK，使用 ByteArray (适用于所有平台, 特别是 Wasm)
+     */
+    suspend fun uploadApk(bytes: ByteArray, filename: String, serviceType: String): Result<String> =
+        Result.failure(UnsupportedOperationException("当前商店不支持基于字节的 APK 上传"))
 
     suspend fun getCurrentUserDetail(): Result<UnifiedUserDetail> =
         Result.failure(UnsupportedOperationException("当前商店不支持获取用户信息"))
@@ -101,5 +116,5 @@ interface IAppStoreRepository {
      * 获取应用相对于当前登录用户的收藏/点赞状态
      */
     suspend fun getFavoriteState(appId: String): Result<UnifiedFavoriteState> =
-        Result.success(UnifiedFavoriteState(isFavorite = false)) 
+        Result.success(UnifiedFavoriteState(isFavorite = false))
 }
