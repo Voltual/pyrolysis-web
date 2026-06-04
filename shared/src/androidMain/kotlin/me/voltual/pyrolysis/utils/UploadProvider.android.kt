@@ -1,5 +1,5 @@
 // FILE: shared/src/jvmMain/kotlin/me/voltual/pyrolysis/util/UploadProvider.jvm.kt
-package me.voltual.pyrolysis.util
+package me.voltual.pyrolysis.utils
 
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes

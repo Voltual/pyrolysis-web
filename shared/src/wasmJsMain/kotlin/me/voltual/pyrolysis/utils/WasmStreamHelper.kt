@@ -1,4 +1,4 @@
-package me.voltual.pyrolysis.util
+package me.voltual.pyrolysis.utils
 
 import kotlin.js.Promise
 import org.khronos.webgl.Uint8Array
