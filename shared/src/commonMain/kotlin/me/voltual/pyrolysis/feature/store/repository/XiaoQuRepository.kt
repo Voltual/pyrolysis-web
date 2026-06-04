@@ -19,7 +19,7 @@ import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.AuthRepository
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.unified.*
-import me.voltual.pyrolysis.util.createUploadInputProvider // 导入我们的工厂函数
+import me.voltual.pyrolysis.util.createUploadProvider // 导入我们的工厂函数
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
@@ -297,7 +297,7 @@ class XiaoQuRepository(
             val response = KtorClient.uploadHttpClient.submitFormWithBinaryData(
                 url = "api.php",
                 formData = formData {
-                    append("file", createUploadInputProvider(file), Headers.build {
+                    append("file", createUploadProvider(file), Headers.build {
                         append(HttpHeaders.ContentType, "image/png")
                         append(HttpHeaders.ContentDisposition, "filename=\"${file.name}\"")
                     })
@@ -335,7 +335,7 @@ class XiaoQuRepository(
             val response = KtorClient.uploadHttpClient.submitFormWithBinaryData(
                 url = "api.php",
                 formData = formData {
-                    append("file", createUploadInputProvider(file), Headers.build {
+                    append("file", createUploadProvider(file), Headers.build {
                         append(HttpHeaders.ContentType, "application/octet-stream")
                         append(HttpHeaders.ContentDisposition, "filename=\"${file.name}\"")
                     })
@@ -362,7 +362,7 @@ class XiaoQuRepository(
                 url = "upload",
                 formData = formData {
                     append("Api", "小趣API")
-                    append("file", createUploadInputProvider(file), Headers.build {
+                    append("file", createUploadProvider(file), Headers.build {
                         append(HttpHeaders.ContentType, "application/vnd.android.package-archive")
                         append(HttpHeaders.ContentDisposition, "filename=\"${file.name}\"")
                     })

@@ -31,6 +31,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
+import kotlin.math.roundToInt
 
 class AppReleaseViewModel(
     private val xiaoQuRepo: XiaoQuRepository
@@ -166,7 +167,8 @@ class AppReleaseViewModel(
                 packageName.value = metadata.packageName ?: ""
                 versionName.value = metadata.versionName ?: "N/A"
                 versionCode.value = metadata.versionCode ?: 0L
-                appSize.value = (fileBytes.size / 1024.0 / 1024.0).let { mb -> "%.2f".format(mb) }
+                val mb = fileBytes.size / 1024.0 / 1024.0
+                appSize.value = ((mb * 100).roundToInt() / 100.0).toString()
                 localIconFile.value = file // 用于显示占位符
                 appExplain.value = "适配性能描述 •\n包名：${metadata.packageName}\n版本：${metadata.versionName}"
             }
