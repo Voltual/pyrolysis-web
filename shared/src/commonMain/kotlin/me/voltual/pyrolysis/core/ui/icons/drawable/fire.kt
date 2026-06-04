@@ -18,7 +18,7 @@ val Fire: ImageVector
             viewportHeight = 24f
         ).apply {
             path(
-                fill = SolidColor(Color(0xFF000000))
+                fill = SolidColor(Color(0xFFFFFFFF))
             ) {
                 moveTo(17.66f, 11.2f)
                 curveTo(17.43f, 10.9f, 17.15f, 10.64f, 16.89f, 10.38f)

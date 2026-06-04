@@ -43,6 +43,7 @@ import me.voltual.pyrolysis.ui.plaza.AppDetailScreen
 import me.voltual.pyrolysis.ui.plaza.AppReleaseScreen
 import me.voltual.pyrolysis.ui.plaza.AppReleaseViewModel
 import me.voltual.pyrolysis.ui.rank.RankingListScreen
+import me.voltual.pyrolysis.ui.rank.RankingListViewModel
 import me.voltual.pyrolysis.ui.search.SearchScreen
 import me.voltual.pyrolysis.ui.search.SearchViewModel
 import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsScreen
@@ -457,7 +458,8 @@ fun BBQNavDisplay(
                         }
 
                         is RankingList -> {
-                            RankingListScreen()
+                        val viewModel: RankingListViewModel = koinViewModel()
+                            RankingListScreen(viewModel=viewModel)
                         }
 
                         is Player -> {

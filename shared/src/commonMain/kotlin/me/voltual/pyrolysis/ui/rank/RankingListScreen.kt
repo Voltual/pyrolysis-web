@@ -25,7 +25,7 @@ import me.voltual.pyrolysis.core.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RankingListScreen(
-    viewModel: RankingListViewModel = viewModel()
+    viewModel: RankingListViewModel
 ) {
     // Navigation 3 导航器
     val navigator = LocalNavigator.current
