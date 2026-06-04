@@ -21,8 +21,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
-              	implementation("no.synth:kmp-zip:0.11.3")
-			    implementation("no.synth:kmp-zip-kotlinx:0.11.3")
+              	implementation("no.synth:kmp-zip:0.12.1")
+			    implementation("no.synth:kmp-zip-kotlinx:0.12.1")
                 implementation(project(":arsc"))
                 implementation(project(":SomeAXML"))
                 implementation(libs.kotlinx.io)

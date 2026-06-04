@@ -154,11 +154,7 @@ dependencies {
     // FileKit
     implementation(libs.filekit.core)
     implementation(libs.filekit.dialogs)
-    implementation(libs.filekit.dialogs.compose)
-    
-    //kmp-zip
-  	implementation("no.synth:kmp-zip:0.11.2")
-    implementation("no.synth:kmp-zip-kotlinx:0.11.2")
+    implementation(libs.filekit.dialogs.compose)    
 
     // 播放器与 UI
     implementation(libs.ijkplayer)
@@ -201,9 +197,6 @@ dependencies {
     implementation(libs.ktor.client.logging)
     implementation(libs.kotlinx.serialization.json)
 
-    // 安全与数据
-    implementation(libs.tink.android)
-    implementation(libs.protobuf.kotlin)
 
     // --- Neo Store 移植依赖 ---
     implementation(libs.kotlinx.datetime)
