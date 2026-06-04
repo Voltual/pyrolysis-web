@@ -19,7 +19,7 @@ import me.voltual.pyrolysis.AppStore
 import me.voltual.pyrolysis.AuthRepository
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.unified.*
-import me.voltual.pyrolysis.util.createUploadProvider // 导入我们的工厂函数
+import me.voltual.pyrolysis.utils.createUploadProvider // 导入我们的工厂函数
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
