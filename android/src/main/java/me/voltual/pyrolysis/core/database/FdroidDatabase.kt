@@ -102,27 +102,30 @@ abstract class FdroidDatabase : RoomDatabase() {
     companion object {
         const val TAG = "fdroid.db"
 
-        // 适配 Room 3.0 异步 SQLiteConnection 的数据库回调
+        // 【回归测试改动】：恢复为和旧版一致的 onCreate 触发逻辑
         val dbCreateCallback = object : RoomDatabase.Callback() {
-            override suspend fun onOpen(connection: SQLiteConnection) {
-                super.onOpen(connection)
+            
+            // 注意：Room 3.0 中重写 onCreate 传入的是 SQLiteConnection，并且是 suspend 函数
+            override suspend fun onCreate(connection: SQLiteConnection) {
+                super.onCreate(connection)
                 
-                // 使用 IO 协程进行异步数据填充，避免阻塞主线程和数据库初始化
+                // 保持旧版的异步线程池塞入数据逻辑
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        val dao = org.koin.java.KoinJavaComponent.get<RepositoryDao>(RepositoryDao::class.java)
+                        // 使用 lazy 规避 Koin 瞬间注入导致的死锁，等内部准备好再去取
+                        val dao by lazy { org.koin.java.KoinJavaComponent.get<RepositoryDao>(RepositoryDao::class.java) }
                         
-                        // 只有数据库为空时才初始化默认仓库
+                        // 严格匹配旧版判断
                         if (dao.getCount() == 0) {
                             val allRepos = (Repository.defaultRepositories + loadPresetRepos())
                                 .distinctBy { it.address }
                                 .toTypedArray()
                             
                             dao.put(*allRepos)
-                            Log.d(TAG, "Database initialized with ${allRepos.size} default repositories.")
+                            Log.d(TAG, "Database initialized with ${allRepos.size} default repositories (Legacy Mode).")
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to seed initial repositories", e)
+                        Log.e(TAG, "Failed to seed initial repositories in legacy mode", e)
                     }
                 }
             }
@@ -145,7 +148,6 @@ abstract class FdroidDatabase : RoomDatabase() {
     }
 }
 
-// 补全并修复后的 Koin 模块：正确挂载了 dbCreateCallback 并使用 Bundled 驱动
 val databaseModule = module {
     single<FdroidDatabase> {
         androidx.room3.Room.databaseBuilder(
@@ -153,8 +155,8 @@ val databaseModule = module {
             FdroidDatabase::class.java,
             "main_fdroid_database.db"
         )
-        .setDriver(androidx.sqlite.driver.bundled.BundledSQLiteDriver()) // 必须显式设置 Room3 驱动
-        .addCallback(FdroidDatabase.dbCreateCallback) // 修复：挂载初始化回调
+        .setDriver(androidx.sqlite.driver.bundled.BundledSQLiteDriver()) 
+        .addCallback(FdroidDatabase.dbCreateCallback) // 挂载改回 onCreate 后的回调
         .fallbackToDestructiveMigration(true)
         .build()
     }

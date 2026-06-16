@@ -106,7 +106,6 @@ android {
 }
 
 // 移除了之前报错的 androidComponents 重命名块，因为 AGP 9 不再支持该属性
-// 如果您需要更复杂的重命名（例如完全自定义格式），建议在构建完成后手动重命名或使用自定义 Copy Task。
 
 dependencies {
     // 基础

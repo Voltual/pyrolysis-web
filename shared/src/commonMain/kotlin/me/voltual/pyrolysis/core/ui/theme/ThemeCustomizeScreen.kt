@@ -107,9 +107,9 @@ fun ThemeCustomizeScreen(
                         scope.launch {
                             lightColors = ThemeColorDataStore.DEFAULT_COLORS.lightSet
                             darkColors = ThemeColorDataStore.DEFAULT_COLORS.darkSet
-                            themeStore.saveGlobalBackgroundUri(null)
-                            themeStore.saveDrawerHeaderLightBackgroundUri(null)
-                            themeStore.saveDrawerHeaderDarkBackgroundUri(null)
+//                            themeStore.saveGlobalBackgroundUri(null)
+//                            themeStore.saveDrawerHeaderLightBackgroundUri(null)
+//                            themeStore.saveDrawerHeaderDarkBackgroundUri(null)
                             themeStore.saveRoundScreenPaddings(false, 0f, 0f, 0f, 0f)
                             ThemeManager.updateCustomColors(ThemeColorDataStore.DEFAULT_COLORS)
                         }
@@ -138,19 +138,19 @@ fun ThemeCustomizeScreen(
             }
 
             LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 80.dp)) {
-                item {
+/*                item {
                     GlobalBackgroundEditor(
                         title = "主页背景图片",
                         backgroundUri = globalBackgroundUri,
                         onSelectImage = { globalBackgroundPickerLauncher.launch() },
                         onReset = { scope.launch { themeStore.saveGlobalBackgroundUri(null) } }
                     )
-                }
+                }*/
 
                 item { HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp)) }
 
                 item { Text(text = "显示设置", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
-                item { SwitchWithText(text = "启用圆屏适配", checked = roundScreenEnabled, onCheckedChange = { roundScreenEnabled = it }, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
+                item { SwitchWithText(text = "启用边距调整", checked = roundScreenEnabled, onCheckedChange = { roundScreenEnabled = it }, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
                 item { OutlinedTextField(value = roundLeft.toString(), onValueChange = { roundLeft = it.toFloatOrNull() ?: roundLeft }, label = { Text("左内边距 (dp)") }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), enabled = roundScreenEnabled) }
                 item { OutlinedTextField(value = roundTop.toString(), onValueChange = { roundTop = it.toFloatOrNull() ?: roundTop }, label = { Text("上内边距 (dp)") }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), enabled = roundScreenEnabled) }
                 item { OutlinedTextField(value = roundRight.toString(), onValueChange = { roundRight = it.toFloatOrNull() ?: roundRight }, label = { Text("右内边距 (dp)") }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), enabled = roundScreenEnabled) }
@@ -167,7 +167,7 @@ fun ThemeCustomizeScreen(
 
                 when (selectedTab) {
                     0 -> {
-                        item {
+/*                        item {
                             DrawerBackgroundEditor(
                                 title = "侧边栏背景 (日间)",
                                 description = "仅修改侧边栏头部背景图片",
@@ -176,7 +176,7 @@ fun ThemeCustomizeScreen(
                                 onReset = { scope.launch { themeStore.saveDrawerHeaderLightBackgroundUri(null) } }
                             )
                         }
-                        item { HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)) }
+                        item { HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)) }*/
                         items(lightColors.toList(), key = { "light_" + it.first }) { (name, color) ->
                             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                                 ColorEditItem(colorName = name, currentColor = color, onColorChange = { newColor -> lightColors = lightColors.copyWith(name, newColor) }, translate = translate)
@@ -185,7 +185,7 @@ fun ThemeCustomizeScreen(
                         }
                     }
                     1 -> {
-                        item {
+/*                        item {
                             DrawerBackgroundEditor(
                                 title = "侧边栏背景 (夜间)",
                                 description = "仅修改侧边栏头部背景图片",
@@ -194,7 +194,7 @@ fun ThemeCustomizeScreen(
                                 onReset = { scope.launch { themeStore.saveDrawerHeaderDarkBackgroundUri(null) } }
                             )
                         }
-                        item { HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)) }
+                        item { HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)) }*/
                         items(darkColors.toList(), key = { "dark_" + it.first }) { (name, color) ->
                             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                                 ColorEditItem(colorName = name, currentColor = color, onColorChange = { newColor -> darkColors = darkColors.copyWith(name, newColor) }, translate = translate)

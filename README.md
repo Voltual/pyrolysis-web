@@ -1,52 +1,30 @@
-半成品所以README暂无
-下面是一些开发过程当乐子看吧
-合并了https://github.com/rushiiMachine/arsc
-的代码
-合并了
-https://github.com/duangsuse-valid-projects/SomeAXML
-的代码
-吸取了
-https://slack-chats.kotlinlang.org/t/32605455/how-can-i-configure-kmp-to-stop-downloading-the-nodejs-and-y
-的教训添加了
-allprojects {
-    project.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin> {
-        the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec>().download = false
-    }
-    project.plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsPlugin> {
-        project.the<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsEnvSpec>().download = false
-    }
-    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin> {
-        project.the<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec>().download = false
-    }
-}
-设置PREFER_PROJECT解决kotlinWasmBinaryenSetup找不到com.github.webassembly.binaryen的问题。
-在gradle.properties中kotlin.js.yarn=false，让org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin'不要自动下载Yarn啊（我根本没有用）
-agp升级到9.0:
-The 'org.jetbrains.kotlin.android' plugin in project ':android' is no longer required for Kotlin support since AGP 9.0.
-64
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-翻译过来是:
-你用了 AGP 9.0，老子不需要这个插件了。请立刻把 android.builtInKotlin 删掉，转用内置 Kotlin。
+懒得写README了
+项目是“小趣空间”
+http://app.xiaoqu.online/
+的第三方客户端
+支持安卓与wasmjs平台
+但鸣谢是应该的
+## 🙏 特别鸣谢
 
-KSP is not compatible with Android Gradle Plugin's built-in Kotlin. Please disable by adding android.builtInKotlin=false to gradle.properties and apply kotlin("android") plugin
-翻译:
-KSP不兼容，请去 gradle.properties 加上 android.builtInKotlin=false 并引入 kotlin.android 插件。
-
-然后你就会陷入死循环
-
-(✘_✘)毁灭吧世界
-这是我发的帖子。不过真正的解决方案是提升ksp版本🙄，所以后来我成功升级到agp9了。但是光看报错日志确实一头雾水
-
-一些androidx库，实际JetBrains都会在后续提供跨平台方案比如
-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version = "1.7.3" }
-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
-jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "multiplatform-nav3-ui" }
-
-jetbrains-material3-adaptiveNavigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "compose-multiplatform-adaptive" }
-jetbrains-lifecycle-viewmodelNavigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "compose-multiplatform-lifecycle" }
-
-
-eruda是个好东西🙃
-
-wasmjs的字体加载参考了kotlinconf
-用preloadFont在ComposeViewport中进行非阻塞的字体预加载
+- 感谢同属 GPLv3 项目的哔哩终端，播放器部分借鉴了其 Java 代码
+- 应用的冷启动启动页面实现借鉴了同属 GPLv3 项目的bilimiao的XML代码
+- 应用图标来自于Material Design
+- 应用名称灵感来自明日方舟的“浊燃作战”活动
+- 感谢同是开发第三方前端的如能的"三方小趣"的经验榜实现
+- 部分图标使用了图标包 Whicons 中的图标
+- 虽然 Whicons 图标包许可证是 CC BY-SA 4.0，但知识共享组织官方表示，CC BY-SA 4.0 是一个"兼容 GPLv3 的协议"
+- 见 https://creativecommons.org/2015/10/08/cc-by-sa-4-0-now-one-way-compatible-with-gplv3/
+-MarkDown渲染借用了RikkaHub的代码。
+-PackageManagerExt是借用了Droid-ify的代码
+-在一部分版本中的下载服务也借用了Droid-ify的代码
+-但自19.0之后将下载任务全权交给1DM
+-本项目在20.0时大规模合并同属GPLv3项目的Neo Store的代码用于实现F-Droid相关功能。
+-23.0之后移除了使用1dm下载改回直接跳转url
+-arsc模块代码基于https://github.com/rushiiMachine/arsc
+-SomeAXML模块代码基于https://github.com/duangsuse-valid-projects/SomeAXML
+本项目的上游是:    
+哔哩终端（GPLv3）:https://gitee.com/RobinNotBad/BiliClient
+RikkaHub（AGPLv3）:https://github.com/rikkahub/rikkahub/
+bilimiao（GPLv3）:https://github.com/10miaomiao/bilimiao2
+Droid-ify（GPLv3）:https://github.com/Droid-ify/client
+Neo Store（GPLv3）:https://github.com/NeoApplications/Neo-Store

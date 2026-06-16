@@ -5,10 +5,6 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import me.voltual.pyrolysis.AppStore
 
-/**
- * Navigation 3 的类型安全目的地契约。
- * 移除了所有冗余的 route 字符串定义，完全依赖 Kotlinx Serialization 进行类型匹配。
- */
 @Serializable
 sealed interface AppDestination : NavKey
 
@@ -34,6 +30,9 @@ data object StoreManager : AppDestination
 @Serializable
 data object UpdateSettings : AppDestination
 
+@Serializable
+data object ProxySettings : AppDestination
+
 // --- 社区与帖子 ---
 @Serializable
 data object Community : AppDestination
@@ -50,15 +49,12 @@ data object FollowingPosts : AppDestination
 @Serializable
 data object BrowseHistory : AppDestination
 
-/** 帖子详情 */
 @Serializable
 data class PostDetail(val postId: Long) : AppDestination
 
-/** 创建帖子 */
 @Serializable
 data object CreatePost : AppDestination
 
-/** 创建退币申请帖 */
 @Serializable
 data class CreateRefundPost(
     val appId: Long,
@@ -67,26 +63,22 @@ data class CreateRefundPost(
     val payMoney: Int
 ) : AppDestination
 
-/** 图片预览 */
 @Serializable
 data class ImagePreview(val imageUrl: String) : AppDestination
 
 // --- 用户相关 ---
-/** 用户详情 */
 @Serializable
 data class UserDetail(
     val userId: Long,
     val store: AppStore = AppStore.XIAOQU_SPACE
 ) : AppDestination
 
-/** 用户的帖子列表 */
 @Serializable
 data class MyPosts(
     val userId: Long,
     val nickname: String? = null
 ) : AppDestination
 
-/** 搜索 */
 @Serializable
 data class Search(
     val userId: String? = null,
@@ -105,7 +97,6 @@ data object FollowList : AppDestination
 @Serializable
 data object FanList : AppDestination
 
-/** 账号资料 */
 @Serializable
 data class AccountProfile(val store: AppStore = AppStore.XIAOQU_SPACE) : AppDestination
 
@@ -113,7 +104,6 @@ data class AccountProfile(val store: AppStore = AppStore.XIAOQU_SPACE) : AppDest
 data object SignInSettings : AppDestination
 
 // --- 资源广场与应用 ---
-/** 资源广场 */
 @Serializable
 data class ResourcePlaza(
     val isMyResource: Boolean,
@@ -128,7 +118,6 @@ data object Explore : AppDestination
 @Serializable
 data object SortFilterSheet : AppDestination
 
-/** 应用详情 */
 @Serializable
 data class AppDetail(
     val appId: String,
@@ -136,7 +125,6 @@ data class AppDetail(
     val storeName: String
 ) : AppDestination
 
-//F-Droid应用详情
 @Serializable
 data class AppPage(
     val packageName :String
@@ -151,7 +139,6 @@ data object PrefsReposPage : AppDestination
 @Serializable
 data object CreateAppRelease : AppDestination
 
-/** 更新应用发布 */
 @Serializable
 data class UpdateAppRelease(val appDetailJson: String) : AppDestination
 
@@ -165,7 +152,6 @@ data object Billing : AppDestination
 @Serializable
 data object PaymentCenterAdvanced : AppDestination
 
-/** 应用购买支付 */
 @Serializable
 data class PaymentForApp(
     val appId: Long,
@@ -176,7 +162,6 @@ data class PaymentForApp(
     val previewContent: String
 ) : AppDestination
 
-/** 帖子打赏支付 */
 @Serializable
 data class PaymentForPost(
     val postId: Long,
@@ -191,6 +176,5 @@ data class PaymentForPost(
 @Serializable
 data object RankingList : AppDestination
 
-/** 视频播放 */
 @Serializable
 data class Player(val bvid: String) : AppDestination

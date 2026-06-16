@@ -17,8 +17,10 @@ import me.voltual.pyrolysis.ui.rank.RankingListViewModel
 import me.voltual.pyrolysis.ui.search.SearchViewModel
 import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsViewModel
 import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsViewModel
+import me.voltual.pyrolysis.ui.settings.proxy.ProxySettingsViewModel
 import me.voltual.pyrolysis.ui.user.*
 import me.voltual.pyrolysis.core.ui.theme.ThemeColorDataStore
+import me.voltual.pyrolysis.ui.payment.PaymentViewModel
 import me.voltual.pyrolysis.feature.store.repository.XiaoQuRepository
 import me.voltual.pyrolysis.feature.store.repository.IAppStoreRepository
 import me.voltual.pyrolysis.AppStore
@@ -36,6 +38,7 @@ val PLAZA_STORE_QUALIFIER = named("plaza_store")
 val USER_FILTER_STORE_QUALIFIER = named("user_filter_store")
 val USER_AGREEMENT_STORE_QUALIFIER = named("user_agreement_store")
 val UPDATE_SETTINGS_STORE_QUALIFIER = named("update_settings_store")
+val PROXY_SETTINGS_STORE_QUALIFIER = named("proxy_settings_store")
 val STORAGE_SETTINGS_STORE_QUALIFIER = named("storage_settings_store")
 val SIGN_IN_SETTINGS_STORE_QUALIFIER = named("sign_in_settings_store")
 val SEARCH_HISTORY_STORE_QUALIFIER = named("search_history_store")
@@ -49,7 +52,7 @@ val commonModule = module {
     single { CryptoManager() }
     single { UserCredentialsSerializer(get()) }
 
-    // 数据库 Dao 注册（依赖于平台 Module 提供的 AppDatabase）
+    // 数据库 Dao 注册
     single { get<AppDatabase>().logDao() }  
     single { get<AppDatabase>().browseHistoryDao() } 
     single { get<AppDatabase>().postDraftDao() }
@@ -69,6 +72,7 @@ val commonModule = module {
     single { StorageSettingsDataStore(get(STORAGE_SETTINGS_STORE_QUALIFIER)) }
     single { PostDraftDataStore(get(DRAFT_STORE_QUALIFIER)) } 
     single { UpdateSettingsDataStore(get(UPDATE_SETTINGS_STORE_QUALIFIER)) }
+    single { ProxySettingsDataStore(get(PROXY_SETTINGS_STORE_QUALIFIER)) }
     single { SignInSettingsDataStore(get(SIGN_IN_SETTINGS_STORE_QUALIFIER)) }
     single { PlayerDataStore(get(PLAYER_SETTINGS_STORE_QUALIFIER)) }
     single { DrawerMenuDataStore(get(DRAWER_MENU_STORE_QUALIFIER)) }
@@ -85,6 +89,7 @@ val commonModule = module {
     viewModel { UserProfileViewModel(get(), get()) }
     viewModel { UserListViewModel(get()) }
     viewModel { UserDetailViewModel(get()) }
+    viewModel { PaymentViewModel(get(), get(PAYMENT_STORE_QUALIFIER)) }    
     viewModel { SignInSettingsViewModel(get(), get()) }
 
     viewModel { CommunityViewModel() }
@@ -111,9 +116,7 @@ val commonModule = module {
     viewModel { PlayerViewModel(get()) }
     viewModel { LogViewModel(get()) }
     viewModel { UpdateSettingsViewModel(get()) }
+    viewModel { ProxySettingsViewModel(get()) }
 }
 
-/**
- * 平台特有基础设施注入声明。
- */
 expect val platformModule: Module

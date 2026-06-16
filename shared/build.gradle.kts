@@ -16,10 +16,10 @@ plugins {
 
 buildConfig {
     useKotlinOutput()
-    packageName("me.voltual.pyrolysis")
+    packageName("me.voltual.pyrolysis.shared")
     
-    buildConfigField("VERSION_NAME", "22.1")
-    buildConfigField("VERSION_CODE", 511) 
+    buildConfigField("VERSION_NAME", "23.1")
+    buildConfigField("VERSION_CODE", 667) 
 }
 
 kotlin {
@@ -40,6 +40,7 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
+        useEsModules()
     }
 
     applyDefaultHierarchyTemplate()
@@ -76,7 +77,6 @@ kotlin {
                 implementation(libs.filekit.dialogs)
                 implementation(libs.filekit.dialogs.compose)
                 implementation(libs.coil.compose)
-                implementation(libs.coil.network.ktor)
                 
                 // DataStore library
                 implementation("androidx.datastore:datastore-core:1.3.0-alpha09")
@@ -101,7 +101,10 @@ kotlin {
         }
 
         wasmJsMain.dependencies {
-            implementation(libs.navigation3.browser) 
+            implementation(libs.ktor.client.js.wasm)                    
+            // 这两个库会接管 Wasm 层的初始化钩子，彻底干掉那个无处安放的文件系统异常！
+            implementation(libs.coil.compose.wasm)
+            implementation(libs.coil.network.ktor.wasm)                
             implementation(libs.sqlite.web)
             implementation(libs.kotlinx.io)             
         }

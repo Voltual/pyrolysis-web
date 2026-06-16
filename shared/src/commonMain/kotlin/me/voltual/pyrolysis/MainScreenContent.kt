@@ -39,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -50,6 +51,7 @@ import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.UpdateInfo
 import me.voltual.pyrolysis.data.UpdateSettingsDataStore
 import me.voltual.pyrolysis.data.UserAgreementDataStore
+import me.voltual.pyrolysis.data.ProxySettingsDataStore
 import me.voltual.pyrolysis.core.database.LogEntry
 import me.voltual.pyrolysis.core.database.LogDao
 import me.voltual.pyrolysis.core.utils.UpdateCheckResult
@@ -88,6 +90,7 @@ val topLevelRoutes: Set<NavKey> = setOf(Home)
 @Composable
 fun PyrolysisApp(
     agreementDataStore: UserAgreementDataStore = koinInject(), 
+    proxySettingsDataStore: ProxySettingsDataStore = koinInject(),
     modifier: Modifier = Modifier,
     platformEntryProvider: @Composable (NavKey, Navigator) -> (@Composable () -> Unit)? = { _, _ -> null }
 ) {
@@ -99,6 +102,25 @@ fun PyrolysisApp(
     val topAppBarController = remember { TopAppBarController() }
     val navigator = remember(focusManager, topAppBarController, navigationState) {
         Navigator(navigationState, focusManager, topAppBarController)
+    }
+
+    // 监听网络代理设置变化，动态将最新基址回写到内存提供者中
+    LaunchedEffect(Unit) {
+        launch {
+            combine(
+                proxySettingsDataStore.useCustomProxy,
+                proxySettingsDataStore.customProxyUrl,
+                proxySettingsDataStore.customWanyueyunUrl
+            ) { useProxy, proxyUrl, wanyueyunUrl ->
+                if (useProxy) {
+                    ApiUrlProvider.apiBaseUrl = proxyUrl.ifBlank { DefaultApiBaseUrl }
+                    ApiUrlProvider.wanyueyunUploadApiBaseUrl = wanyueyunUrl.ifBlank { DefaultWanyueyunUploadApiBaseUrl }
+                } else {
+                    ApiUrlProvider.apiBaseUrl = DefaultApiBaseUrl
+                    ApiUrlProvider.wanyueyunUploadApiBaseUrl = DefaultWanyueyunUploadApiBaseUrl
+                }
+            }.collect {}
+        }
     }
 
     CompositionLocalProvider(
@@ -225,7 +247,7 @@ fun MainScreenContent(
                                 IconButton(onClick = { navigator.goBack() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "返回", // 彻底移除 Android R 依赖
+                                        contentDescription = "返回",
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -233,7 +255,7 @@ fun MainScreenContent(
                                 IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                     Icon(
                                         imageVector = Icons.Default.Menu,
-                                        contentDescription = "打开菜单", // 彻底移除 Android R 依赖
+                                        contentDescription = "打开菜单",
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -289,7 +311,6 @@ fun MainScreenContent(
                         snackbarHostState = snackbarHostState,
                         modifier = Modifier.fillMaxSize(),
                         platformEntryProvider = { key ->
-                            // 优先调用外部平台注入的页面提供器
                             platformEntryProvider(key, navigator)
                         }
                     )
@@ -353,6 +374,7 @@ fun getTitleForDestination(route: NavKey?): String {
         is AppDetail -> "应用详情"
         is AppPage -> "应用页"
         UpdateSettings -> "更新设置"
+        ProxySettings -> "网络代理"
         MyComments -> "我的评论"
         MyReviews -> "我的评价"
         SignInSettings -> "签到设置"
@@ -413,7 +435,6 @@ private fun tryAutoLogin(
     navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
-    // 适配 KMP 协程，在 Default 调度器启动，并在需要时切换
     CoroutineScope(Dispatchers.Default).launch {
         try {
             val deviceId = authRepository.deviceId.first()
@@ -478,13 +499,9 @@ private fun tryAutoLogin(
 
 @Composable
 fun WasmDebugWidget() {
-    // 渲染驱动：这个数字会随着浏览器的渲染帧（requestAnimationFrame）疯狂递增
     var renderFrameCount by remember { mutableStateOf(0L) }
-    
-    // 交互驱动：点击按钮时递增，用来测试触控/鼠标事件
     var interactionCount by remember { mutableStateOf(0) }
 
-    // 只要 Wasm 渲染循环还活着，这个底层循环就会一直跑，数字就会疯狂闪烁
     LaunchedEffect(Unit) {
         while (true) {
             withFrameMillis { 
@@ -493,7 +510,6 @@ fun WasmDebugWidget() {
         }
     }
 
-    // 用最基础的 Surface 包裹，确保可见性
     Surface(
         color = Color(0xFF222222),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
@@ -511,7 +527,6 @@ fun WasmDebugWidget() {
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // 如果这个数字在动，说明 Canvas 渲染正常，网页没卡死
             Text(
                 text = "帧渲染计数: $renderFrameCount", 
                 color = Color.Green,
@@ -520,7 +535,6 @@ fun WasmDebugWidget() {
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // 如果点击这个按钮数字能变，说明触控/鼠标事件能正常分发进 Compose
             Button(
                 onClick = { interactionCount++ },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)

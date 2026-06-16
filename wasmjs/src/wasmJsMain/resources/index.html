@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <script src="coi-serviceworker.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <title>Pyrolysis Web</title>
     
@@ -25,12 +26,6 @@
             width: calc(100% - env(safe-area-inset-left) - env(safe-area-inset-right));
         }
     </style>
-
-    <script src="eruda.js"></script>
-    <script>
-        // 2. 紧接着初始化 Eruda
-        eruda.init();
-    </script>
 
     <script src="wasmjs.js" defer></script>
 </head>

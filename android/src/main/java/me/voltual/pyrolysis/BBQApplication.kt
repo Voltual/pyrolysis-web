@@ -79,6 +79,7 @@ class BBQApplication : Application(), KoinStartup {
     override fun onKoinStartup() = koinConfiguration {
         androidContext(this@BBQApplication)
         modules(
+                androidAppModule,  
             downloadClientModule,
             workmanagerModule,
             databaseModule,
@@ -86,7 +87,6 @@ class BBQApplication : Application(), KoinStartup {
             installerModule,
             commonModule,      // KMP 共享的通用模块
         platformModule,    // KMP 共享的 Android 平台实现
-        androidAppModule   // Android 壳工程专属模块
         )
     }
 

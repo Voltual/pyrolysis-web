@@ -30,21 +30,15 @@ import me.voltual.pyrolysis.data.UpdateInfo
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * 自定义网络异常，彻底脱离 java.io.IOException
- */
 class PyrolysisNetworkException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 object KtorClient {
-    private const val BASE_URL = "http://apk.xiaoqu.online/"
     private const val UPLOAD_BASE_URL = "https://file.bz6.top/"
-    private const val WANYUEYUN_UPLOAD_BASE_URL = "http://wanyueyun-x.xbjstd.cn:9812/"
     
     private const val MAX_RETRIES = 3
     private val RETRY_DELAY = 1000.milliseconds
     private val TIMEOUT_DURATION = 30.seconds
 
-    // 通用 JSON 配置
     private val commonJson = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -52,7 +46,6 @@ object KtorClient {
         encodeDefaults = true
     }
 
-    // Ktor HttpClient 实例
     val httpClient = HttpClient() {
         install(ContentNegotiation) {
             json(commonJson)
@@ -67,21 +60,17 @@ object KtorClient {
             level = LogLevel.HEADERS
         }
         defaultRequest {
-            url(BASE_URL)
             header(HttpHeaders.Accept, ContentType.Application.Json.toString())
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
         }
     }
 
-    // 上传专用客户端
     val uploadHttpClient = HttpClient() {
         defaultRequest { url(UPLOAD_BASE_URL) }
         install(ContentNegotiation) { json(commonJson) }
     }
 
-    // 挽悦云上传客户端
     val wanyueyunUploadHttpClient = HttpClient() {
-        defaultRequest { url(WANYUEYUN_UPLOAD_BASE_URL) }
         install(ContentNegotiation) { json(commonJson) }
     }
 
@@ -551,17 +540,11 @@ object KtorClient {
         val data: String?
     )
     
-    /**
-     * Kotlin 风格的 JSON 转换扩展
-     */
     fun AppDetail.toJson(): String = commonJson.encodeToString(AppDetail.serializer(), this)
     fun String.toAppDetail(): AppDetail? = runCatching { 
         commonJson.decodeFromString(AppDetail.serializer(), this) 
     }.getOrNull()
 
-    /**
-     * 安全执行 API 调用，使用 Kotlin 惯用法重试
-     */
     private suspend inline fun <reified T> safeApiCall(block: suspend () -> HttpResponse): Result<T> {
         repeat(MAX_RETRIES) { attempt ->
             try {
@@ -583,7 +566,14 @@ object KtorClient {
         method: HttpMethod = HttpMethod.Post,
         parameters: Parameters = Parameters.Empty
     ): Result<T> = safeApiCall {
-        httpClient.request(url) {
+        val absoluteUrl = if (url.startsWith("http://") || url.startsWith("https://")) {
+            url
+        } else {
+            val base = ApiUrlProvider.apiBaseUrl.removeSuffix("/")
+            val path = url.removePrefix("/")
+            "$base/$path"
+        }
+        httpClient.request(absoluteUrl) {
             this.method = method
             setBody(FormDataContent(parameters))
         }
@@ -964,7 +954,9 @@ object KtorClient {
             })
 
         override suspend fun uploadAvatar(appid: Int, token: String, file: ByteArray, filename: String): Result<BaseResponse> = runCatching {
-            val response: HttpResponse = httpClient.post("${API_PREFIX}upload_avatar") {
+            val base = ApiUrlProvider.apiBaseUrl.removeSuffix("/")
+            val absoluteUrl = "$base/${API_PREFIX}upload_avatar"
+            val response: HttpResponse = httpClient.post(absoluteUrl) {
                 setBody(MultiPartFormDataContent(formData {
                     append("appid", appid.toString())
                     append("usertoken", token)

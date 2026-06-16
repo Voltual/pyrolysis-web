@@ -1,10 +1,10 @@
 // Copyright (C) 2025 Voltual
-// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
+// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU Affero 通用公共许可证第3版
 //（或任意更新的版本）的条款重新分发和/或修改它。
 // 本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
+// 有关更多细节，请参阅 GNU Affero 通用公共许可证。
 //
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
+// 你应该已经收到了一份 GNU Affero 通用公共许可证的副本
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
 package me.voltual.pyrolysis.ui.home
 
@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.ktor.http.Url
 import kotlinx.coroutines.launch
-import me.voltual.pyrolysis.BuildConfig 
+import me.voltual.pyrolysis.shared.BuildConfig 
 import me.voltual.pyrolysis.core.ui.components.MarkDownText
 import me.voltual.pyrolysis.core.ui.icons.drawable.* import kotlinx.datetime.TimeZone
 import kotlin.time.Clock
@@ -86,8 +86,6 @@ fun AboutScreen(
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             modifier = Modifier.padding(top = 4.dp)
         )
-
-        // 💡 烦人的 Android SDK 版本文本直接咔嚓掉了，省心！
 
         Spacer(modifier = Modifier.height(32.dp))
         
@@ -155,13 +153,13 @@ fun LicenseCard(onLicenseClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "本程序采用 GNU 通用公共许可证第3版 (GPLv3) 发布。您可以自由地使用、修改和分发本程序，但必须遵守其条款。",
+                text = "本程序采用 GNU Affero 通用公共许可证第3版 (AGPLv3) 发布。您可以自由地使用、修改和分发本程序，包括在网络服务中提供远程互动，但必须遵守其条款开源相关源码。",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(12.dp))
             ClickableTextItem(
-                text = "查看项目使用的GPLv3许可证副本",
+                text = "查看项目使用的AGPLv3许可证副本",
                 onClick = onLicenseClick
             )
         }
@@ -194,7 +192,7 @@ fun OpenSourceCard(onGiteeClick: () -> Unit, onReleasesClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "本页面基于 Bilimiao 项目的代码修改而来，遵循 GPLv3 协议。",
+                text = "本页面基于 Bilimiao 项目的代码修改而来，受上游组件影响，整体遵循 AGPLv3 协议。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
@@ -255,7 +253,6 @@ fun ClickableTextItem(text: String, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
-            // 使用转换后的 IcArrowRight 图标替换 R.drawable.ic_arrow_right
             Icon(
                 imageVector = IcArrowRight,
                 contentDescription = "打开链接",
@@ -271,6 +268,7 @@ fun AcknowledgmentsCard(uriHandler: UriHandler) {
     val acknowledgmentsMd = """
         本项目的上游与参考项目（或者说是它们的衍生作品）:
         
+        * **鸣谢开源项目**:
         * **哔哩终端 (GPLv3)**: [Gitee](https://gitee.com/RobinNotBad/BiliClient)
         * **RikkaHub (AGPLv3)**: [GitHub](https://github.com/rikkahub/rikkahub/)
         * **bilimiao (GPLv3)**: [GitHub](https://github.com/10miaomiao/bilimiao2)

@@ -20,7 +20,7 @@ import me.voltual.pyrolysis.data.UpdateSettingsDataStore
 import me.voltual.pyrolysis.KtorClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import me.voltual.pyrolysis.BuildConfig
+import me.voltual.pyrolysis.shared.BuildConfig
 import me.voltual.pyrolysis.data.UpdateInfo
 import kotlinx.serialization.json.Json
 import io.ktor.client.call.body

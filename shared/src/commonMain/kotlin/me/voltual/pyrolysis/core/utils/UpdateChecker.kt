@@ -6,7 +6,7 @@
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
 package me.voltual.pyrolysis.core.utils
 
-import me.voltual.pyrolysis.BuildConfig
+import me.voltual.pyrolysis.shared.BuildConfig
 import me.voltual.pyrolysis.KtorClient
 import me.voltual.pyrolysis.data.UpdateInfo
 import kotlinx.coroutines.CoroutineScope

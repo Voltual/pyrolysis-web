@@ -66,8 +66,11 @@ fun LinkifyText(
     style: TextStyle = MaterialTheme.typography.bodyLarge
 ) {
     val navigator = LocalNavigator.current
-    val uriHandler = LocalUriHandler.current // 跨平台的本地 URI 处理器
+    val uriHandler = LocalUriHandler.current 
     val linkColor = MaterialTheme.colorScheme.primary
+
+    // 初始化跨平台的 B站视频点击处理器
+    val biliVideoHandler = rememberBiliVideoHandler(navigator, uriHandler)
 
     val textStyle = if (style.color == Color.Unspecified) {
         style.copy(color = MaterialTheme.colorScheme.onSurface)
@@ -80,7 +83,6 @@ fun LinkifyText(
         buildAnnotatedString {
             append(processedText)
 
-            // 1. 获取所有匹配项并转换为序列
             val postMatches = INTERNAL_POST_LINK_REGEX.findAll(processedText).map { result ->
                 LinkMatch(
                     range = result.range,
@@ -105,18 +107,15 @@ fun LinkifyText(
                 )
             }
 
-            // 2. 合并、排序并去重（防止通用 URL 误伤特定格式链接）
             val allMatches = (postMatches + biliMatches + urlMatches)
                 .sortedBy { it.range.first }
                 .fold(mutableListOf<LinkMatch>()) { acc, current ->
-                    // 如果当前匹配项的起始位置不在已知匹配项范围内，则添加
                     if (acc.none { current.range.first in it.range }) {
                         acc.add(current)
                     }
                     acc
                 }
 
-            // 3. 应用样式和注解
             allMatches.forEach { match ->
                 addStyle(
                     style = SpanStyle(
@@ -141,7 +140,7 @@ fun LinkifyText(
             text = annotatedString,
             style = textStyle,
             onClick = { offset ->
-                // 处理内部帖子链接
+                // 1. 处理内部帖子链接
                 annotatedString.getStringAnnotations(tag = LinkType.POST.name, start = offset, end = offset)
                     .firstOrNull()?.let { annotation ->
                         annotation.item.toLongOrNull()?.let { postId ->
@@ -150,14 +149,14 @@ fun LinkifyText(
                         return@ClickableText
                     }
 
-                // 处理B站视频链接
+                // 2. 处理B站视频链接 (已使用 expect/actual 差异化)
                 annotatedString.getStringAnnotations(tag = LinkType.BILIVIDEO.name, start = offset, end = offset)
                     .firstOrNull()?.let { annotation ->
-                        navigator.navigate(Player(annotation.item))
+                        biliVideoHandler.handle(annotation.item)
                         return@ClickableText
                     }
 
-                // 处理普通URL
+                // 3. 处理普通URL
                 annotatedString.getStringAnnotations(tag = LinkType.URL.name, start = offset, end = offset)
                     .firstOrNull()?.let { annotation ->
                         val urlString = annotation.item.let {
@@ -165,11 +164,8 @@ fun LinkifyText(
                         }
                         
                         runCatching {
-                            // 使用 Ktor Http 的 Url 对象进行安全解析/校验
                             val ktorUrl = Url(urlString)
-                            // 使用 Compose 跨平台的 uriHandler 打开浏览器
                             uriHandler.openUri(ktorUrl.toString())
-                        }.onFailure {
                         }
                     }
             }

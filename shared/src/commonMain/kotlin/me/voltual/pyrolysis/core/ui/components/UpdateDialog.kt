@@ -21,26 +21,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.ktor.http.Url
 import me.voltual.pyrolysis.data.UpdateInfo
+import me.voltual.pyrolysis.getPlatformId
 
 @Composable
 fun UpdateDialog(updateInfo: UpdateInfo, onDismiss: () -> Unit) {
-    val uriHandler = LocalUriHandler.current // 跨平台的本地 URI 处理器
+    val uriHandler = LocalUriHandler.current
+    val platformId = getPlatformId()
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismiss
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.medium
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .verticalScroll(rememberScrollState()), // 使整个对话框内容可滚动
-                horizontalAlignment = Alignment.CenterHorizontally // 内容水平居中对齐
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "发现新版本：${updateInfo.tag_name}",
@@ -48,41 +50,73 @@ fun UpdateDialog(updateInfo: UpdateInfo, onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.headlineSmall
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
                 Text(
                     text = updateInfo.body,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "32位设备请下载v7a，64位下载v8a",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(8.dp))
                 
-                updateInfo.assets.filter { it.name.endsWith(".apk") }.forEach { asset ->
-                    Button(
-                        onClick = {
-                            runCatching {
-                                // 使用 Ktor 的 Url 解析并验证下载链接
-                                val downloadUrl = Url(asset.browser_download_url)
-                                // 唤起系统浏览器/下载器
-                                uriHandler.openUri(downloadUrl.toString())
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "下载 ${asset.name}")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (platformId == "android") {
+                    Text(
+                        text = "💡 提示：32位设备请下载v7a，64位下载v8a",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    updateInfo.assets.filter { it.name.endsWith(".apk") }.forEach { asset ->
+                        Button(
+                            onClick = {
+                                runCatching {
+                                    uriHandler.openUri(Url(asset.browser_download_url).toString())
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        ) {
+                            Text(text = "下载 ${asset.name}")
+                        }
+                    }
+                } else if (platformId == "web-wasm") {
+                    Text(
+                        text = " 监测到当前为 Web 环境。若您是私有部署，请下载下方构建产物覆盖部署或者联系站长更新",
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    updateInfo.assets.filter { it.name.endsWith("-wasm.zip") }.forEach { asset ->
+                        Button(
+                            onClick = {
+                                runCatching {
+                                    uriHandler.openUri(Url(asset.browser_download_url).toString())
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            Text(text = "下载部署包 ${asset.name}")
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+
+                Spacer(modifier = Modifier.height(12.dp))
                 
-                // "稍后更新" 按钮
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
                     Text("下次一定")
                 }
             }

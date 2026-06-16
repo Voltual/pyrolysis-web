@@ -6,6 +6,14 @@
 //
 // 你应该已经收到了一份 GNU 通用公共许可证的副本
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
+//Copyright (C) 2025 Voltual
+// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
+//（或任意更新的版本）的条款重新分发和/或修改它。
+//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
+// 有关更多细节，请参阅 GNU 通用公共许可证。
+//
+// 你应该已经收到了一份 GNU 通用公共许可证的副本
+// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.foundation.BorderStroke
@@ -22,7 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import me.voltual.pyrolysis.core.ui.icons.phosphor.*
-import me.voltual.pyrolysis.core.ui.icons.drawable.* // 导入转换后的图标
+import me.voltual.pyrolysis.core.ui.icons.drawable.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -87,6 +95,7 @@ fun NavigationDrawerItems(
             DrawerItem("bot_logs", "日志", IconSource.Vector(WorkLog), LogViewer),
             DrawerItem("store_manager", "存储管理", IconSource.Vector(Appbackuprestore), StoreManager),
             DrawerItem("update_settings", "更新设置", IconSource.Vector(Asusupdate), UpdateSettings),
+            DrawerItem("proxy_settings", "网络代理", IconSource.Vector(Phosphor.GlobeSimple), ProxySettings),
             DrawerItem("settings", "主题设置", IconSource.Vector(IcMenuSettings), ThemeCustomize),
             DrawerItem("signin_settings", "签到设置", IconSource.Vector(SignIn), SignInSettings),
             DrawerItem("login", "登录账号", IconSource.Vector(IcMenuLogin), Login),

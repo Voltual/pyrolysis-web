@@ -49,6 +49,7 @@ import me.voltual.pyrolysis.ui.search.SearchViewModel
 import me.voltual.pyrolysis.ui.settings.signin.SignInSettingsScreen
 import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsScreen
 import me.voltual.pyrolysis.ui.settings.update.UpdateSettingsViewModel
+import me.voltual.pyrolysis.ui.settings.proxy.ProxySettingsScreen
 import me.voltual.pyrolysis.core.ui.theme.ThemeCustomizeScreen
 import me.voltual.pyrolysis.ui.user.*
 import me.voltual.pyrolysis.ui.user.compose.UserListScreen
@@ -68,7 +69,6 @@ fun BBQNavDisplay(
     onBack: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    // 平台页面注入器：允许 Android 壳工程注入所有高耦合页面
     platformEntryProvider: @Composable (NavKey) -> (@Composable () -> Unit)? = { null }
 ) {
     val mySceneStrategy = remember { DialogSceneStrategy<NavKey>() }
@@ -99,14 +99,12 @@ fun BBQNavDisplay(
                 slideDistance = slideDistance
             )
         },
-        // 统一在 NavEntry 内部处理 Composable 作用域与平台注入
         entryProvider = { key ->
             NavEntry(key) {
                 val platformContent = platformEntryProvider(key)
                 if (platformContent != null) {
                     platformContent()
                 } else {
-                    // 匹配通用页面或提供跨平台保底
                     when (key) {
                         is Home -> {
                             HomeDestination(snackbarHostState = snackbarHostState)
@@ -441,6 +439,13 @@ fun BBQNavDisplay(
                             )
                         }
 
+                        is ProxySettings -> {
+                            ProxySettingsScreen(
+                                snackbarHostState = snackbarHostState,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
                         is Community -> {
                             CommunityScreen(snackbarHostState = snackbarHostState)
                         }
@@ -458,7 +463,7 @@ fun BBQNavDisplay(
                         }
 
                         is RankingList -> {
-                        val viewModel: RankingListViewModel = koinViewModel()
+                            val viewModel: RankingListViewModel = koinViewModel()
                             RankingListScreen(viewModel=viewModel)
                         }
 
@@ -472,7 +477,6 @@ fun BBQNavDisplay(
                             )
                         }                
 
-                        // --- 以下为 Android 独占页面的跨平台保底占位 UI ---
                         is PrefsReposPage -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text("当前平台暂不支持仓库设置", color = Color.Gray)
@@ -509,7 +513,6 @@ fun BBQNavDisplay(
                             }
                         }
 
-                        // 保底逻辑
                         else -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text("Unknown Key: ${key::class.simpleName}", color = Color.Red)

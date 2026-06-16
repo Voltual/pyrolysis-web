@@ -15,7 +15,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSerializable // 确保引入了此特定的官方扩展
+import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -31,9 +31,6 @@ import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
-/**
- * 严格对照官方原版实现：通过显式手写注册每一个具体的实现类，避开一切不稳定的多平台自动化宏
- */
 internal val config = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
@@ -45,6 +42,7 @@ internal val config = SavedStateConfiguration {
             subclass(ThemeCustomize::class, ThemeCustomize.serializer())
             subclass(StoreManager::class, StoreManager.serializer())
             subclass(UpdateSettings::class, UpdateSettings.serializer())
+            subclass(ProxySettings::class, ProxySettings.serializer())
             
             // --- 社区与帖子 ---
             subclass(Community::class, Community.serializer())
@@ -93,10 +91,6 @@ internal val config = SavedStateConfiguration {
     }
 }
 
-/**
- * Create a navigation state that persists config changes and process death.
- * 签名、参数类型完全原封不动克隆自官方源码示例
- */
 @Composable
 fun rememberNavigationState(
     startRoute: NavKey, 
@@ -124,10 +118,6 @@ fun rememberNavigationState(
     }
 }
 
-/**
- * State holder for navigation state.
- * 完全对照官方原版实现并添加了currentRoute
- */
 class NavigationState(
     val startRoute: NavKey,
     topLevelRoute: MutableState<NavKey>,
@@ -146,7 +136,6 @@ class NavigationState(
             listOf(startRoute, topLevelRoute)
         }
 
-    // 独立保留原本项目的重置机制，全基类操作
     fun resetToStart() {
         topLevelRoute = startRoute
         backStacks.forEach { (key, stack) ->
@@ -165,10 +154,6 @@ class NavigationState(
     }
 }
 
-/**
- * Convert NavigationState into NavEntries.
- * 完全对照官方原版实现
- */
 @Composable
 fun NavigationState.toEntries(
     entryProvider: (NavKey) -> NavEntry<NavKey>
