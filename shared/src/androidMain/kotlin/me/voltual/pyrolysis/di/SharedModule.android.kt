@@ -44,7 +44,8 @@ actual val platformModule: Module = module {
         PLAYER_SETTINGS_STORE_QUALIFIER to "player_settings.preferences_pb",
         DRAWER_MENU_STORE_QUALIFIER to "settings.preferences_pb",
         DEVICE_INFO_STORE_QUALIFIER to "device_info.preferences_pb",
-        THEME_SETTINGS_STORE_QUALIFIER to "theme_settings.preferences_pb"
+        THEME_SETTINGS_STORE_QUALIFIER to "theme_settings.preferences_pb",
+        PROXY_SETTINGS_STORE_QUALIFIER to "proxy_settings_store.preferences_pb"
     )
 
     storeFiles.forEach { (qualifier, fileName) ->
