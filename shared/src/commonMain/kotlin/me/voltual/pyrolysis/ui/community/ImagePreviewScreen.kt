@@ -44,7 +44,7 @@ import me.voltual.pyrolysis.core.utils.cleanUrl
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImagePreviewScreen(
-    imageUrl: String, // 如果你外面传进来的确实是 avatarUrl，这里也可以改成 avatarUrl
+    imageUrl: String, 
     @Suppress("UNUSED_PARAMETER") snackbarHostState: SnackbarHostState, 
     onClose: () -> Unit
 ) {
@@ -119,11 +119,11 @@ fun ImagePreviewScreen(
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
-                    model = cleanedImageUrl,
-                    contentDescription = "用户头像",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+    model = cleanedImageUrl,
+    contentDescription = "图片预览", 
+    modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit //  改为 Fit 保证图片不被裁剪
+            )
             }
         }
     }

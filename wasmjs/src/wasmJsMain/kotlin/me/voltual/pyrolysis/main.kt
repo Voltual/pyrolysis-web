@@ -6,7 +6,6 @@
 //
 // 你应该已经收到了一份 GNU 通用公共许可证的副本
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
-
 package me.voltual.pyrolysis
 
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -29,8 +28,11 @@ import me.voltual.pyrolysis.di.platformModule
 import me.voltual.pyrolysis.Res
 import me.voltual.pyrolysis.unifont
 import me.voltual.pyrolysis.core.ui.theme.BBQTheme
+import me.voltual.pyrolysis.core.ui.theme.ThemeManager
+import me.voltual.pyrolysis.core.ui.theme.ThemeColorDataStore
 import me.voltual.pyrolysis.core.ui.icons.drawable.Fire
 import org.koin.core.context.startKoin
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -41,15 +43,31 @@ fun main() {
     val composeRoot = document.getElementById("ComposeApp")!!
 
     ComposeViewport(composeRoot) {
-    setSingletonImageLoaderFactory { context ->
+        setSingletonImageLoaderFactory { context ->
             createImageLoader(context)
         }
+
+        // 1. 注入 DataStore
+        val themeStore: ThemeColorDataStore = koinInject()
+        
+        // 2. 仅收集自定义颜色
+        val currentColors by themeStore.colorsFlow.collectAsState(initial = null)
+
+        // 3. 当异步流返回颜色时，更新内存单例
+        LaunchedEffect(currentColors) {
+            currentColors?.let {
+                ThemeManager.updateCustomColors(it)
+            }
+        }
+
         @OptIn(ExperimentalResourceApi::class)
         val unifontState = preloadFont(Res.font.unifont)
         val unifont = unifontState.value
         val fontFamilyResolver = LocalFontFamilyResolver.current
         
-        // 外部包裹 BBQTheme 以确保启动页能获取到主题中的 primaryContainer 颜色
+        // 4. 外层包裹 BBQTheme。
+        // 注意：因为 themeMode 初始是 SYSTEM，BBQTheme 内部的 isSystemInDarkTheme() 
+        // 在 WasmJS 启动时会一瞬间识别出浏览器的暗色/亮色模式
         BBQTheme {
             if (unifont != null) {
                 LaunchedEffect(unifont) {
@@ -60,7 +78,7 @@ fun main() {
                     platformEntryProvider = { _, _ -> null }
                 )
             } else {
-                // WasmJS 启动页：背景为主题的 primaryContainer，中间是 Fire 图标
+                // WasmJS 启动页：这里的背景色会完美跟随系统（暗色系统下就是暗色的 primaryContainer）
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.primaryContainer
@@ -73,7 +91,7 @@ fun main() {
                             imageVector = Fire,
                             contentDescription = "Loading",
                             modifier = Modifier.size(100.dp),
-                            tint = Color.Unspecified // 保持图标原始颜色
+                            tint = Color.Unspecified 
                         )
                     }
                 }

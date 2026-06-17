@@ -125,3 +125,10 @@ dependencies {
     add("kspAndroid", libs.room3.compiler)
     add("kspWasmJs", libs.room3.compiler)
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+}
