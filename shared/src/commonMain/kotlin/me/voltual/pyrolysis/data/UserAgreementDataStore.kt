@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
 object AgreementVersions {
-    const val USER_AGREEMENT = 3
+    const val USER_AGREEMENT = 4
     const val XIAOQU_AGREEMENT = 2 
 }
 

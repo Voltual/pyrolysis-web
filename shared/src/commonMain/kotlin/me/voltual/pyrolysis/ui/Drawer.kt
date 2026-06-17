@@ -6,14 +6,6 @@
 //
 // 你应该已经收到了一份 GNU 通用公共许可证的副本
 // 如果没有，请查阅 <http://www.gnu.org/licenses/>.
-//Copyright (C) 2025 Voltual
-// 本程序是自由软件：你可以根据自由软件基金会发布的 GNU 通用公共许可证第3版
-//（或任意更新的版本）的条款重新分发和/或修改它。
-//本程序是基于希望它有用而分发的，但没有任何担保；甚至没有适销性或特定用途适用性的隐含担保。
-// 有关更多细节，请参阅 GNU 通用公共许可证。
-//
-// 你应该已经收到了一份 GNU 通用公共许可证的副本
-// 如果没有，请查阅 <http://www.gnu.org/licenses/>.
 package me.voltual.pyrolysis.ui
 
 import androidx.compose.foundation.BorderStroke
@@ -42,6 +34,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.voltual.pyrolysis.AuthRepository 
 import me.voltual.pyrolysis.data.DrawerMenuDataStore
+import me.voltual.pyrolysis.getPlatformId
 import org.koin.compose.koinInject 
 
 sealed class IconSource {
@@ -80,29 +73,40 @@ fun NavigationDrawerItems(
     scope: CoroutineScope
 ) {
     val authRepository: AuthRepository = koinInject()
+    val platformId = remember { getPlatformId() }
 
-    val allDrawerItems = remember {
-        mutableListOf(
+    val allDrawerItems = remember(platformId) {
+        val items = mutableListOf(
             DrawerItem("home", "首页", IconSource.Vector(IcMenuHome), Home),
             DrawerItem("resources", "资源广场", IconSource.Vector(IcMenuApps), ResourcePlaza(isMyResource = false)),
-            DrawerItem("explore", "仓库探索", IconSource.Vector(Phosphor.Compass), Explore),
-            DrawerItem("repos_search", "仓库搜索", IconSource.Vector(Phosphor.MagnifyingGlass), SearchPage),
-            DrawerItem("prefsrepos", "仓库管理", IconSource.Vector(Phosphor.Graph), PrefsReposPage),
             DrawerItem("community", "交流社区", IconSource.Vector(IcMenuCommunity), Community),
             DrawerItem("messages", "消息中心", IconSource.Vector(IcMenuMessage), MessageCenter),
             DrawerItem("ranking_list", "天梯竞赛", IconSource.Vector(IcMenuRanking), RankingList),
             DrawerItem("release_app", "发布应用", IconSource.Vector(Bg), CreateAppRelease),
             DrawerItem("bot_logs", "日志", IconSource.Vector(WorkLog), LogViewer),
-            DrawerItem("store_manager", "存储管理", IconSource.Vector(Appbackuprestore), StoreManager),
-            DrawerItem("update_settings", "更新设置", IconSource.Vector(Asusupdate), UpdateSettings),
-            DrawerItem("proxy_settings", "网络代理", IconSource.Vector(Phosphor.GlobeSimple), ProxySettings),
-            DrawerItem("settings", "主题设置", IconSource.Vector(IcMenuSettings), ThemeCustomize),
-            DrawerItem("signin_settings", "签到设置", IconSource.Vector(SignIn), SignInSettings),
-            DrawerItem("login", "登录账号", IconSource.Vector(IcMenuLogin), Login),
-            DrawerItem("logout", "退出登录", IconSource.Vector(IcMenuLogout), Home)
+            DrawerItem("update_settings", "更新设置", IconSource.Vector(Asusupdate), UpdateSettings)
         )
+
+        // 仅在 Android 平台下将仓库相关、存储管理、网络代理加入侧边栏
+        if (platformId == "android") {
+            items.add(DrawerItem("repos_search", "仓库搜索", IconSource.Vector(Phosphor.MagnifyingGlass), SearchPage))
+            items.add(DrawerItem("prefsrepos", "仓库管理", IconSource.Vector(Phosphor.Graph), PrefsReposPage))
+            items.add(DrawerItem("store_manager", "存储管理", IconSource.Vector(Appbackuprestore), StoreManager))
+            items.add(DrawerItem("explore", "仓库探索", IconSource.Vector(Phosphor.Compass), Explore))
+            items.add(DrawerItem("proxy_settings", "网络代理", IconSource.Vector(Phosphor.GlobeSimple), ProxySettings))
+        }
+
+        items.addAll(
+            listOf(
+                DrawerItem("settings", "主题设置", IconSource.Vector(IcMenuSettings), ThemeCustomize),
+                DrawerItem("signin_settings", "签到设置", IconSource.Vector(SignIn), SignInSettings),
+                DrawerItem("login", "登录账号", IconSource.Vector(IcMenuLogin), Login),
+                DrawerItem("logout", "退出登录", IconSource.Vector(IcMenuLogout), Home)
+            )
+        )
+        items
     }
-    val allItemsMap = remember { allDrawerItems.associateBy { it.id } }
+    val allItemsMap = remember(allDrawerItems) { allDrawerItems.associateBy { it.id } }
 
     var orderedItems by remember { mutableStateOf<List<DrawerItem>>(emptyList()) }
     var draggedItem by remember { mutableStateOf<DrawerItem?>(null) }
@@ -112,7 +116,7 @@ fun NavigationDrawerItems(
 
     var selectedItemId by remember { mutableStateOf("home") }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(allDrawerItems) {
         val savedOrder = drawerMenuDataStore.loadMenuOrder().first()
         orderedItems = if (savedOrder.isEmpty()) {
             allDrawerItems
@@ -123,7 +127,7 @@ fun NavigationDrawerItems(
         }
     }
 
-    LaunchedEffect(currentTopLevelRoute) {
+    LaunchedEffect(currentTopLevelRoute, orderedItems) {
         currentTopLevelRoute?.let { currentRoute ->
             val matchedItem = orderedItems.find { it.route == currentRoute && it.id != "logout" }
             if (matchedItem != null && matchedItem.id != selectedItemId) {

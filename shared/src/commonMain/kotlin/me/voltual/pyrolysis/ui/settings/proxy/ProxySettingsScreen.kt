@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import me.voltual.pyrolysis.DefaultApiBaseUrl
 import me.voltual.pyrolysis.DefaultWanyueyunUploadApiBaseUrl
 import me.voltual.pyrolysis.data.ProxySettingsDataStore
+import me.voltual.pyrolysis.getPlatformId
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -19,6 +20,31 @@ fun ProxySettingsScreen(
     snackbarHostState: SnackbarHostState,
     viewModel: ProxySettingsViewModel = koinViewModel()
 ) {
+    val platformId = remember { getPlatformId() }
+
+    if (platformId == "web-wasm") {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Web 平台无需配置代理",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "应用将自动使用部署站点的相对路径进行通信。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        return
+    }
+
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 

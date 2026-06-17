@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.voltual.pyrolysis.DefaultApiBaseUrl
 import me.voltual.pyrolysis.DefaultWanyueyunUploadApiBaseUrl
+import me.voltual.pyrolysis.getPlatformId
 
 class ProxySettingsDataStore(private val dataStore: DataStore<Preferences>) {
     
@@ -17,13 +18,12 @@ class ProxySettingsDataStore(private val dataStore: DataStore<Preferences>) {
         private val CUSTOM_PROXY_URL = stringPreferencesKey("custom_proxy_url")
         private val CUSTOM_WANYUEYUN_URL = stringPreferencesKey("custom_wanyueyun_url")
         
-        // 默认的反代服务器基址
         const val DEFAULT_PROXY = "https://bbq.voltual.cc.cd/"
     }
 
-    // 在 Android 平台下默认开启代理以绕过潜在的区域限制
+    // 仅在 Android 上默认开启自定义代理，Web 平台默认关闭
     val useCustomProxy: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[USE_CUSTOM_PROXY] ?: true
+        preferences[USE_CUSTOM_PROXY] ?: (getPlatformId() == "android")
     }
 
     val customProxyUrl: Flow<String> = dataStore.data.map { preferences ->
