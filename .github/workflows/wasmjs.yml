@@ -1,6 +1,7 @@
 name: Wasmjs CI
 
 on:
+  workflow_dispatch:
 
 permissions:
   contents: write
