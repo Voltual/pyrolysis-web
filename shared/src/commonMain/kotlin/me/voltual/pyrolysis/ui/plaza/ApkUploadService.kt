@@ -8,6 +8,6 @@
 package me.voltual.pyrolysis.ui.plaza
 
 enum class ApkUploadService(val displayName: String) {
-    KEYUN("氪云"),
+    FILE_SMALLFUN("小趣外链"),
     WANYUEYUN("挽悦云")
 }

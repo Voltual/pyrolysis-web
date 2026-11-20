@@ -33,7 +33,7 @@ import kotlin.time.Duration.Companion.seconds
 class PyrolysisNetworkException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 object KtorClient {
-    private const val UPLOAD_BASE_URL = "https://file.bz6.top/"
+    private const val UPLOAD_BASE_URL = "https://file.smallfun.cn/"
     
     private const val MAX_RETRIES = 3
     private val RETRY_DELAY = 1000.milliseconds

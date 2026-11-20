@@ -65,7 +65,7 @@ class AppReleaseViewModel(
     val isUpdateMode = mutableStateOf(false)
     private var appId: Long = 0
     private var appVersionId: Long = 0
-    val selectedApkUploadService = mutableStateOf(ApkUploadService.KEYUN)
+    val selectedApkUploadService = mutableStateOf(ApkUploadService.FILE_SMALLFUN)
     val appIntroduce = mutableStateOf("资源介绍【密码:】 ")
     val appExplain = mutableStateOf("适配性能描述 •\n包名：\n版本：")
     val isPay = mutableStateOf(0)
